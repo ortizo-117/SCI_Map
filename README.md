@@ -127,9 +127,10 @@ The ExtraTreesModel and scaler.pkl files were built using specific Python depend
 
 1. Create a new conda environment following PyBrain's requirements:
    ```bash
-   conda create -n pybrain python=3.7
-   conda activate pybrain
+   conda create  --name pybrainage_env python=3.7 scikit-learn=0.24.2 pandas=1.3.4 numpy=1.20.3
+   conda activate pybrainage_env 
    ```
+
 
 2. Install the required dependencies as specified in the PyBrain repository:
    - Follow the installation steps at https://github.com/james-cole/PyBrainAge
