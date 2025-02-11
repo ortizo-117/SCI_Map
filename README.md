@@ -1,7 +1,4 @@
-# SCI_MAP
-
-A multi-center structural analysis project investigating brain changes in individuals with spinal cord injury (SCI).
-
+# SCI MAP
 ## Project Description
 
 SCI_MAP is designed to analyze structural brain differences between individuals with spinal cord injury and healthy age-matched controls. The project has two main objectives:
@@ -43,7 +40,13 @@ This repository serves as a centralized location for sharing processing scripts 
 
 ### Step 1: FreeSurfer Processing (reconall.sh)
 
-The initial processing step uses the `reconall.sh` script located in the processing folder. This script:
+The initial processing step uses the `reconall.sh` script located in the processing folder. This script can be run on:
+- Linux systems
+- Windows systems using Windows Subsystem for Linux (WSL)
+  - Recommended: Ubuntu on WSL
+  - Make sure FreeSurfer is properly installed in your WSL environment
+
+The script:
 
 1. Takes BIDS-formatted T1w images as input
 2. Applies FreeSurfer's `recon-all` command to perform:
@@ -53,6 +56,57 @@ The initial processing step uses the `reconall.sh` script located in the process
    - Cortical parcellation
    - Subcortical segmentation
 3. Generates structural information for subsequent analysis
+
+**System Requirements:**
+- For Windows users: WSL installed with Ubuntu distribution
+- FreeSurfer properly configured in your Linux/WSL environment
+- Sufficient disk space for FreeSurfer outputs (~1GB per subject)
+
+#### Usage
+1. Open the `reconall.sh` script and update the directory paths:
+   ```bash
+   # Update these paths in reconall.sh
+   RAWDATA_DIR="/path/to/your/bids/dataset"      # Directory containing your BIDS-formatted T1w images
+   DERIVATIVES_DIR="/path/to/output/derivatives"  # Directory where FreeSurfer outputs will be saved
+   ```
+
+2. Make the script executable and run it:
+   ```bash
+   chmod +x processing/reconall.sh
+   ./processing/reconall.sh
+   ```
+
+**Error Handling Tip:**
+If you encounter script execution errors, especially when running on WSL or after editing on Windows, you may need to fix line endings using dos2unix:
+```bash
+# Install dos2unix if not already installed
+sudo apt-get install dos2unix
+
+# Convert the script to Unix format
+dos2unix processing/reconall.sh
+```
+This fixes the "bad interpreter" or similar errors caused by Windows-style line endings (CRLF).
+
+The script will:
+- Process all subjects found in your BIDS directory
+- Create a FreeSurfer output directory for each subject
+- Generate logs in the derivatives directory
+
+**Example Directory Structure:**
+```
+study/
+├── rawdata/                  # Your RAWDATA_DIR
+│   ├── sub-001/
+│   │   └── anat/
+│   │       └── sub-001_T1w.nii.gz
+│   └── sub-002/
+│       └── anat/
+│           └── sub-002_T1w.nii.gz
+└── derivatives/              # Your DERIVATIVES_DIR
+    └── freesurfer/
+        ├── sub-001/
+        └── sub-002/
+```
 
 #### Processing Time
 - Approximately 20 minutes per subject (benchmarked on NVIDIA 4070Ti)
@@ -76,6 +130,32 @@ After FreeSurfer processing and quality assurance, the next step involves organi
 1. Extracts relevant metrics from FreeSurfer's aparc and aseg outputs
 2. Organizes the data into a standardized format required by PyBrain
 3. Generates a consolidated dataset for brain age prediction
+
+#### Usage
+1. Open the `aparc_aseg_pybrain.sh` script and update the directory paths:
+   ```bash
+   # Update these paths in aparc_aseg_pybrain.sh
+   ROOT_DIR="/path/to/your/freesurfer/subjects"    # Directory containing FreeSurfer processed subjects
+   OUTPUT_DIR="/path/to/save/pybrain/features"     # Directory where the output CSV will be saved
+   ```
+
+2. Make the script executable and run it:
+   ```bash
+   chmod +x processing/aparc_aseg_pybrain.sh
+   ./processing/aparc_aseg_pybrain.sh
+   ```
+
+**Note:** Like the reconall.sh script, this can be run on:
+- Linux systems
+- Windows systems using WSL (Ubuntu recommended)
+
+**Error Handling Tip:**
+If you encounter script execution errors, fix line endings using dos2unix:
+```bash
+dos2unix processing/aparc_aseg_pybrain.sh
+```
+
+The script will generate a CSV file containing all the required features for brain age prediction.
 
 ### Step 4: Age Data Integration
 
