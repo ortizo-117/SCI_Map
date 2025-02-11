@@ -9,6 +9,9 @@ SCI_MAP is designed to analyze structural brain differences between individuals 
 1. Compare structural brain characteristics between SCI patients and healthy controls
 2. Investigate structural brain changes in SCI patients who develop neuropathic pain
 
+![SCI_MAP Study Banner](assets/study_banner.png)
+
+
 ## Prerequisites
 
 To participate in this project, you need:
@@ -35,6 +38,8 @@ Your data should be organized following BIDS conventions:
 ## Repository Purpose and Processing Pipeline
 
 This repository serves as a centralized location for sharing processing scripts with all participating institutes in the SCI_MAP project. The standardized scripts ensure consistent analysis across different sites and datasets.
+
+![SCI_MAP Workflow](assets/workflow.png)
 
 ### Step 1: FreeSurfer Processing (reconall.sh)
 
