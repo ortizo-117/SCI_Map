@@ -29,7 +29,7 @@ s_name=char(subject);
 img=fopen(imageF,'r','l');
 fib=fopen(overlay,'r','l');
 
-if img >0 && fib >0
+if img > 0 && fib > 0
     
     [inputT1img, mr_parms, Mdc, volsz] =load_mgh(imageF);
     Nx=volsz(1);

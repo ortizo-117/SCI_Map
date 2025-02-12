@@ -57,22 +57,49 @@ if(nargin < 1 | nargin > 4)
   return;
 end
 
-% unzip if it is compressed 
-if (strcmpi(fname((strlen(fname)-3):strlen(fname)), '.MGZ') | ...
-		strcmpi(fname((strlen(fname)-3):strlen(fname)), '.GZ'))
-  rand('state', sum(100*clock));
-  gzipped =  round(rand(1)*10000000 + ...
-		   sum(int16(fname))) + round(cputime);
-  ind = findstr(fname, '.');
-  new_fname = sprintf('/tmp/tmp%d.mgh', gzipped);
-  if(strcmp(computer,'MAC') || strcmp(computer,'MACI') || ismac)
-    unix(sprintf('gunzip -c %s > %s', fname, new_fname)) ;
-  else
-    unix(sprintf('zcat %s > %s', fname, new_fname)) ;
-  end
-  fname = new_fname ;
-else
-  gzipped = -1 ;
+% Check if file is compressed
+[~, ~, fileExt] = fileparts(fname);
+gzipped = -1;  % Initialize gzipped variable
+
+if (strcmpi(fileExt, '.mgz') || strcmpi(fileExt, '.gz'))
+    % Generate unique temporary filename using modern methods
+    tempName = tempname;
+    new_fname = [tempName '.mgh'];
+    gzipped = 1;  % Set to 1 if file is compressed
+    
+    % Decompress file based on operating system
+    if ismac
+        system(sprintf('gunzip -c "%s" > "%s"', fname, new_fname));
+    elseif ispc
+        % Check common 7-Zip installation paths
+        sevenzip_paths = {
+            'C:\Program Files\7-Zip\7z.exe',
+            'C:\Program Files (x86)\7-Zip\7z.exe'
+        };
+        
+        % Find valid 7-Zip path
+        zip_path = '';
+        for i = 1:length(sevenzip_paths)
+            if exist(sevenzip_paths{i}, 'file')
+                zip_path = sevenzip_paths{i};
+                break;
+            end
+        end
+        
+        if ~isempty(zip_path)
+            cmd = sprintf('"%s" e -so "%s" > "%s"', zip_path, fname, new_fname);
+            [status, result] = system(cmd);
+            if status ~= 0
+                error('Failed to decompress file: %s', result);
+            end
+        else
+            error('Could not find 7-Zip installation. Please ensure it is installed in Program Files.');
+        end
+    else
+        % Linux/Unix systems
+        system(sprintf('zcat "%s" > "%s"', fname, new_fname));
+    end
+    fname = new_fname;
 end
 
 

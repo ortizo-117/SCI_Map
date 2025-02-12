@@ -1,5 +1,26 @@
 #!/bin/bash
 
+# Add path conversion functions at the start of the script
+convert_to_unix_path() {
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+        # Convert Windows path to WSL path
+        wslpath -u "$1"
+    else
+        # Return path as-is for Unix systems
+        echo "$1"
+    fi
+}
+
+convert_to_matlab_path() {
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+        # Convert to Windows path for MATLAB
+        wslpath -w "$1"
+    else
+        # Return path as-is for Unix systems
+        echo "$1"
+    fi
+}
+
 # 06/03/2022
 # Wrapper written by Iyad Ba Gari and Sophia Thomopoulos (enigma@ini.usc.edu)
 # This script is to be run on your subjects after you have run FreeSurfer on your T1 data
@@ -113,6 +134,11 @@ if [[ -z ${subjectIDs} || -z ${fs_dir} ||  -z ${scripts_dir} || -z ${matlab_dir}
     Usage >&2
 fi
 
+# Convert input paths to Unix format
+fs_dir=$(convert_to_unix_path "$fs_dir")
+scripts_dir=$(convert_to_unix_path "$scripts_dir")
+out_dir=$(convert_to_unix_path "$out_dir")
+matlab_dir=$(convert_to_unix_path "$matlab_dir")
 
 #STEP 1: Extract Subcortical Volumes
 if [[ "${step_val_1}" = true ]]; then 
@@ -191,11 +217,27 @@ if [[ "${step_val_3}" = true ]]; then
 
 	qc_dir_subcort=${out_dir}/qc/subcortical && mkdir -p ${qc_dir_subcort}
 
-	for subj_id in `cat $subjectIDs`; do
-		matlabcall="addpath(genpath('${scripts_dir}')); func_make_subcorticalFS_ENIGMA_QC('${qc_dir_subcort}','${subj_id}','${fs_dir}/${subj_id}/mri/orig_nu.mgz','${fs_dir}/${subj_id}/mri/aparc+aseg.mgz')"
-		${matlab_dir} -nodisplay -batch "${matlabcall};exit;"
-		echo 'Done with subject: ' ${subj_id}
-	done
+	for subj_id in `cat "$subjectIDs"`; do
+        # Convert paths to Windows format for MATLAB
+        fs_path=$(wslpath -w "${fs_dir}/${subj_id}")
+        qc_path=$(wslpath -w "${qc_dir_subcort}")
+        enigma_qc_path=$(wslpath -w "${scripts_dir}")  # Path to parent directory
+        
+        # Create MATLAB command with proper Windows paths
+        matlabcall="addpath(genpath('${enigma_qc_path}')); func_make_subcorticalFS_ENIGMA_QC('${qc_path}','${subj_id}','${fs_path}/mri/orig_nu.mgz','${fs_path}/mri/aparc+aseg.mgz')"
+        echo "matlabcall: ${matlabcall}"
+        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+            # For Windows/WSL
+            matlab_exe=$(wslpath -w "${matlab_dir}")
+            echo "Running MATLAB with path: ${enigma_qc_path}"
+            "${matlab_exe}" -batch "${matlabcall}"
+        else
+            # For Linux
+            "${matlab_dir}" -batch "${matlabcall}"
+        fi
+        echo 'Done with subject: ' "${subj_id}"
+    done
+
 
 	#Create QC webpage
 	cd ${qc_dir_subcort}
@@ -280,16 +322,34 @@ fi
 
 #STEP 4: Quality Checking Cortical Measures - Internal Surface Method
 if [[ "${step_val_4}" = true ]]; then
+
 	printf "\n+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n"
 	printf "Running STEP 4: Internal Cortical FreeSurfer QC \n"
 	printf "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+\n"
 
+
 	qc_dir_cort_int=${out_dir}/qc/cortical_internal && mkdir -p ${qc_dir_cort_int}
 
-	for subj_id in `cat $subjectIDs`; do
-		matlabcall="addpath(genpath('${scripts_dir}')); func_make_corticalpngs_ENIGMA_QC('${qc_dir_cort_int}','${subj_id}','${fs_dir}/${subj_id}/mri/orig_nu.mgz','${fs_dir}/${subj_id}/mri/aparc+aseg.mgz')"
-		${matlab_dir} -nodisplay -batch "${matlabcall};exit;"
-		echo 'Done with subject: ' ${subj_id}
+	for subj_id in `cat "$subjectIDs"`; do
+        # Convert paths to Windows format for MATLAB
+        fs_path=$(wslpath -w "${fs_dir}/${subj_id}")
+        qc_path=$(wslpath -w "${qc_dir_cort_int}")
+        enigma_qc_path=$(wslpath -w "${scripts_dir}")  # Path to parent directory
+        
+        # Create MATLAB command with proper Windows paths
+        matlabcall="addpath(genpath('${enigma_qc_path}')); func_make_corticalpngs_ENIGMA_QC('${qc_path}','${subj_id}','${fs_path}/mri/orig_nu.mgz','${fs_path}/mri/aparc+aseg.mgz')"
+        echo "matlabcall: ${matlabcall}"
+        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+            # For Windows/WSL
+            matlab_exe=$(wslpath -w "${matlab_dir}")
+            echo "Running MATLAB with path: ${enigma_qc_path}"
+            "${matlab_exe}" -batch "${matlabcall}"
+        else
+            # For Linux
+            "${matlab_dir}" -batch "${matlabcall}"
+        fi
+        echo 'Done with subject: ' "${subj_id}"
+
 	done
 	
 	#Create QC webpage
@@ -355,11 +415,45 @@ if [[ "${step_val_5}" = true ]]; then
 
 	qc_dir_cort_ext=${out_dir}/qc/cortical_external && mkdir -p ${qc_dir_cort_ext}
 
-	for subj_id in `cat $subjectIDs`; do
-		matlabcall="addpath(genpath('${scripts_dir}')); FS_external_QC('${fs_dir}', '${qc_dir_cort_ext}', '${subj_id}')"
-		${matlab_dir} -nodisplay -batch "${matlabcall};exit;"
-		echo 'Done with subject: ' ${subj_id}
+#	for subj_id in `cat $subjectIDs`; do
+#        fs_path=$(convert_to_matlab_path "${fs_dir}")
+#        script_path=$(convert_to_matlab_path "${scripts_dir}")
+        
+#       matlabcall="addpath(genpath('${script_path}')); FS_external_QC('${fs_path}', '${qc_path}', '${subj_id}')"
+        
+#        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+#            # For Windows/WSL
+#            wslpath -w "${matlab_dir}" | xargs -I {} {} -batch "${matlabcall}"
+#       else
+#           # For Linux
+#           "${matlab_dir}" -batch "${matlabcall}"
+#        fi
+#        echo 'Done with subject: ' ${subj_id}
+#    done
+
+	# TEST CODE SNIPPET 
+	for subj_id in `cat "$subjectIDs"`; do
+        # Convert paths to Windows format for MATLAB
+        fs_path=$(wslpath -w "${fs_dir}")
+        qc_path=$(wslpath -w "${qc_dir_cort_ext}")
+        enigma_qc_path=$(wslpath -w "${scripts_dir}")  # Path to parent directory
+        
+        # Create MATLAB command with proper Windows paths
+        matlabcall="addpath(genpath('${enigma_qc_path}')); FS_external_QC('${fs_path}', '${qc_path}', '${subj_id}')"
+        echo "matlabcall: ${matlabcall}"
+        if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+            # For Windows/WSL
+            matlab_exe=$(wslpath -w "${matlab_dir}")
+            echo "Running MATLAB with path: ${enigma_qc_path}"
+            "${matlab_exe}" -batch "${matlabcall}"
+        else
+            # For Linux
+            "${matlab_dir}" -batch "${matlabcall}"
+        fi
+        echo 'Done with subject: ' "${subj_id}"
+
 	done
+
 
 	#Create QC webpage
 	cd ${qc_dir_cort_ext}

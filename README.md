@@ -111,17 +111,95 @@ study/
 #### Processing Time
 - Approximately 20 minutes per subject (benchmarked on NVIDIA 4070Ti)
 
-### Step 2: Quality Assurance (Work in Progress)
+### Step 2: Quality Assurance
 
-Quality control of the FreeSurfer outputs is performed using the ENIGMA QA pipeline. This step ensures the quality and reliability of the structural processing before proceeding with further analysis.
+Quality control of the FreeSurfer outputs is performed using the ENIGMA QA pipeline. This step uses the `enigma_fs_wrapper_script.sh` which has been modified from the original ENIGMA-FreeSurfer-protocol-main to work with both Windows and Linux paths.
 
-#### QA Pipeline Features (Coming Soon)
-- Automated quality metrics assessment
-- Visual QC report generation
-- Identification of potential processing failures
-- Standardized QC criteria based on ENIGMA protocols
+**Important Updates:**
+- Script has been modified to handle Windows/WSL and Linux paths automatically
+- Path conversion has been tested with MATLAB R2023a
+- MATLAB functions are compatible with both Windows and Linux environments
+- Automatic path conversion between WSL and Windows formats for MATLAB calls
 
-[Detailed documentation will be added once the QA pipeline is implemented]
+#### Usage Example
+```bash
+./enigma_fs_wrapper_script.sh \
+  --subjects "/mnt/c/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/results_pybrain/subject_ids.txt" \
+  --fsdir "/mnt/c/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/derivatives" \
+  --outdir "/mnt/c/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs" \
+  --script "/mnt/c/Users/kramerlab/Documents/SCI_Map/ENIGMA-FreeSurfer-protocol-main" \
+  --matlab "/mnt/c/Program Files/MATLAB/R2023a/bin/matlab.exe" \
+  --fs7 false \
+  --step_1 true \
+  --step_2 true \
+  --step_3 true \
+  --step_4 true \
+  --step_5 false
+```
+
+#### Script Arguments
+- `--subjects`: Text file containing list of subject IDs
+- `--fsdir`: Directory containing FreeSurfer processed subjects
+- `--outdir`: Directory where QA outputs will be saved
+- `--script`: Path to the ENIGMA scripts directory (parent folder of ENIGMA_QC)
+- `--matlab`: Path to MATLAB executable
+- `--fs7`: Set to 'true' if using FreeSurfer 7+, 'false' otherwise
+- `--step_1`: Extract subcortical measures (set to true) 
+- `--step_2`: Extract cortical measures (set to true)
+- `--step_3`: Generate subcortical QC images (set to true)
+- `--step_4`: Generate internal cortical QC images (set to true)
+- `--step_5`: Generate external cortical QC images (set to false)
+
+#### QA Pipeline Steps
+1. **Subcortical Measures (step_1)**
+   - Extracts volumes of subcortical structures
+   - Generates CSV file with measurements
+
+2. **Cortical Measures (step_2)**
+   - Extracts cortical thickness and surface area
+   - Creates separate files for thickness and surface metrics
+
+3. **Subcortical QC (step_3)**
+   - Generates visualization of subcortical segmentations
+   - Creates HTML report for visual inspection
+
+4. **Internal Cortical QC (step_4)**
+   - Generates internal view of cortical parcellation
+   - Creates HTML report for reviewing internal boundaries
+
+5. **External Cortical QC (step_5)**
+   - Generates external surface views
+   - Creates HTML report for surface quality review
+
+#### Output Structure
+```
+ENIGMA_outputs/
+├── measures/
+│   ├── LandRvolumes.csv
+│   ├── CorticalMeasuresENIGMA_ThickAvg.csv
+│   └── CorticalMeasuresENIGMA_SurfAvg.csv
+└── qc/
+    ├── subcortical/
+    │   └── ENIGMA_Subcortical_QC.html
+    ├── cortical_internal/
+    │   └── ENIGMA_Cortical_QC.html
+    └── cortical_external/
+        └── ENIGMA_External_QC.html
+```
+
+**Note:** For Windows/WSL users, make sure to:
+1. Use Windows paths for MATLAB executable
+2. Use WSL paths for other arguments
+3. Ensure MATLAB can access the ENIGMA_QC functions
+
+**Quality Assessment Process:**
+After generating the QC HTML files, visual inspection of the segmentations should be performed following the ENIGMA Cortical Quality Control Guide 2.0 [available here](https://enigma.ini.usc.edu/protocols/imaging-protocols/). This guide provides:
+- Detailed criteria for evaluating segmentation quality
+- Examples of acceptable and unacceptable segmentations
+- Guidelines for when to exclude subjects based on poor segmentation quality
+- Standardized QC recording templates
+
+Review each subject's QC HTML files and document any quality issues following the ENIGMA protocol guidelines before proceeding to the next step.
 
 ### Step 3: Data Organization for Brain Age Prediction (aparc_aseg_pybrain.sh)
 
