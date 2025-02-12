@@ -193,13 +193,50 @@ ENIGMA_outputs/
 3. Ensure MATLAB can access the ENIGMA_QC functions
 
 **Quality Assessment Process:**
-After generating the QC HTML files, visual inspection of the segmentations should be performed following the ENIGMA Cortical Quality Control Guide 2.0 [available here](https://enigma.ini.usc.edu/protocols/imaging-protocols/). This guide provides:
-- Detailed criteria for evaluating segmentation quality
-- Examples of acceptable and unacceptable segmentations
-- Guidelines for when to exclude subjects based on poor segmentation quality
-- Standardized QC recording templates
+After generating the QC HTML files, visual inspection of the segmentations should be performed following the ENIGMA Cortical Quality Control Guide 2.0 [available here](https://enigma.ini.usc.edu/protocols/imaging-protocols/). 
 
-Review each subject's QC HTML files and document any quality issues following the ENIGMA protocol guidelines before proceeding to the next step.
+Common QC Issues to Look For:
+
+1. **Subcortical Segmentation Issues:**
+   - Incorrect boundary definitions
+   - Missing structures
+   - Asymmetrical segmentation between hemispheres
+   - Unusual shapes or volumes in subcortical structures
+
+2. **Cortical Surface Problems:**
+   - Skull strip failures (remaining dura/skull)
+   - White matter segmentation errors
+   - Pial surface overestimation
+   - Missing gyri or sulci
+   - Topological defects
+
+3. **Motion Artifacts:**
+   - Blurring or ringing in the original T1
+   - Distorted segmentation due to movement
+   - Inconsistent tissue boundaries
+
+4. **Intensity Issues:**
+   - Poor gray/white matter contrast
+   - Intensity normalization failures
+   - Bias field artifacts affecting segmentation
+
+Follow the ENIGMA protocol guidelines to:
+- Rate each scan's quality (Pass/Fail)
+- Document specific issues found
+- Make consistent decisions about subject exclusion
+- Record QC decisions in a standardized format
+
+Review each subject's QC HTML files thoroughly before proceeding to the next step. When in doubt, consult the detailed examples in the ENIGMA Cortical Quality Control Guide.
+
+#### Example QC Outputs
+
+**Cortical QC HTML Example:**
+![Example Cortical QC](assets/example_qa_cortical.png)
+
+**Subcortical QC HTML Example:**
+![Example Subcortical QC](assets/example_qa_subcortical.png)
+
+These HTML files provide interactive views of the segmentation results for detailed quality assessment. Use them in conjunction with the ENIGMA QC guidelines to evaluate segmentation quality.
 
 ### Step 3: Data Organization for Brain Age Prediction (aparc_aseg_pybrain.sh)
 
