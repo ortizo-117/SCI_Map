@@ -40,6 +40,8 @@ This repository serves as a centralized location for sharing processing scripts 
 
 ### Step 1: FreeSurfer Processing (reconall.sh)
 
+**Note:** If you have already run FreeSurfer's recon-all on your data, you can skip this step and proceed directly to Step 2. However, ensure you have a working FreeSurfer installation as it will be required for Step 3.
+
 The initial processing step uses the `reconall.sh` script located in the processing folder. This script can be run on:
 - Linux systems
 - Windows systems using Windows Subsystem for Linux (WSL)
@@ -113,7 +115,29 @@ study/
 
 ### Step 2: Quality Assurance
 
-Quality control of the FreeSurfer outputs is performed using the ENIGMA QA pipeline. This step uses the `enigma_fs_wrapper_script.sh` which has been modified from the original ENIGMA-FreeSurfer-protocol-main to work with both Windows and Linux paths.
+Quality control of the FreeSurfer outputs is performed using the ENIGMA QA pipeline. This step uses the `enigma_fs_wrapper_script.sh` (run from WSL or Linux command terminal) which has been modified from the original ENIGMA-FreeSurfer-protocol-main to work with both Windows and Linux paths. The script must be executed in a WSL or Linux terminal environment, even when working with Windows paths.
+
+#### Prerequisites
+1. **MATLAB Requirements:**
+   - MATLAB R2023a or older installed
+   - Image Processing Toolbox
+   - Statistics and Machine Learning Toolbox
+
+2. **Subject List File:**
+   Create a text file (e.g., `subject_ids.txt`) containing one subject ID per line:
+   ```text
+   sub-001
+   sub-002
+   sub-003
+   ```
+   **Note:** Subject IDs must match the FreeSurfer output directory names
+
+3. **FreeSurfer Outputs:**
+   - Completed FreeSurfer processing for all subjects
+   - Standard FreeSurfer directory structure
+   - Required files:
+     - `mri/orig_nu.mgz`
+     - `mri/aparc+aseg.mgz`
 
 **Important Updates:**
 - Script has been modified to handle Windows/WSL and Linux paths automatically
@@ -234,13 +258,20 @@ Review each subject's QC HTML files thoroughly before proceeding to the next ste
 ![Example Cortical QC](assets/example_qa_cortical.png)
 
 **Subcortical QC HTML Example:**
-![Example Subcortical QC](assets/example_qa_subcortical.png)
+![Example Subcortical QC](assets/example_qa_subcortical_vol.png)
 
 These HTML files provide interactive views of the segmentation results for detailed quality assessment. Use them in conjunction with the ENIGMA QC guidelines to evaluate segmentation quality.
 
 ### Step 3: Data Organization for Brain Age Prediction (aparc_aseg_pybrain.sh)
 
-After FreeSurfer processing and quality assurance, the next step involves organizing the structural data into a format compatible with PyBrain for brain age prediction analysis. This is done using the `aparc_aseg_pybrain.sh` script, which:
+After FreeSurfer processing and quality assurance, the next step involves organizing the structural data into a format compatible with PyBrain for brain age prediction analysis. 
+
+**Prerequisites:**
+- Completed FreeSurfer processing (from Step 1 or pre-existing)
+- Working FreeSurfer installation (required for reading FreeSurfer outputs)
+- FreeSurfer environment properly configured
+
+This step uses the `aparc_aseg_pybrain.sh` script, which:
 
 1. Extracts relevant metrics from FreeSurfer's aparc and aseg outputs
 2. Organizes the data into a standardized format required by PyBrain
