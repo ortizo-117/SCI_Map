@@ -373,6 +373,15 @@ If you have trouble accessing these files, please contact:
 - The original PyBrain repository maintainers
 - The SCI_MAP project coordinators
 
-#### Usage
+
+## Support and Contact
+
+If you encounter any issues with this pipeline or have questions about its implementation, please contact:
+
+Oscar Ortiz (Project Lead) 
+Email: oscar.ortiz.angulo@gmail.com
+
+
+
 
 
