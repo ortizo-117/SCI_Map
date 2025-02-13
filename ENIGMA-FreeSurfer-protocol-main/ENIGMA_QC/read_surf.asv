@@ -48,6 +48,23 @@ fprintf('Full path: %s\n', fname);
 fprintf('Directory: %s\n', fpath);
 fprintf('Filename: %s%s\n', fname_only, fext);
 
+% Try different opening modes if standard fails
+fid = fopen(fname, 'rb', 'b');
+if (fid < 0)
+    % Try without explicit big-endian
+    fid = fopen(fname, 'rb');
+    if (fid < 0)
+        % Try with full path resolution
+        full_path = fullfile(pwd, fname);
+        fid = fopen(full_path, 'rb', 'b');
+        if (fid < 0)
+            error('Could not open file: %s\nCurrent directory: %s\nfopen error: %s', ...
+                  fname, pwd, ferror(fopen(fname, 'rb')));
+        end
+    end
+end
+
+
 
 fid = fopen(fname, 'rb', 'b') ;
 if (fid < 0)

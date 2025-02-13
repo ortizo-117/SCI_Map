@@ -158,7 +158,7 @@ Quality control of the FreeSurfer outputs is performed using the ENIGMA QA pipel
   --step_2 true \
   --step_3 true \
   --step_4 true \
-  --step_5 false
+  --step_5 true
 ```
 
 #### Script Arguments
@@ -172,7 +172,7 @@ Quality control of the FreeSurfer outputs is performed using the ENIGMA QA pipel
 - `--step_2`: Extract cortical measures (set to true)
 - `--step_3`: Generate subcortical QC images (set to true)
 - `--step_4`: Generate internal cortical QC images (set to true)
-- `--step_5`: Generate external cortical QC images (set to false)
+- `--step_5`: Generate external cortical QC images (set to true)
 
 #### QA Pipeline Steps
 1. **Subcortical Measures (step_1)**
@@ -254,11 +254,16 @@ Review each subject's QC HTML files thoroughly before proceeding to the next ste
 
 #### Example QC Outputs
 
-**Cortical QC HTML Example:**
+**Subcortical QC HTML Example (step 3):**
+![Example Subcortical QC](assets/example_qa_subcortical_vol.png)
+
+**Internal Cortical QC HTML Example (step 4):**
 ![Example Cortical QC](assets/example_qa_cortical.png)
 
-**Subcortical QC HTML Example:**
-![Example Subcortical QC](assets/example_qa_subcortical_vol.png)
+**External Cortical QC HTML Example (step 5):**
+![Example Cortical QC](assets/example_qa_cortical_external.png)
+
+
 
 These HTML files provide interactive views of the segmentation results for detailed quality assessment. Use them in conjunction with the ENIGMA QC guidelines to evaluate segmentation quality.
 

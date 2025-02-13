@@ -5,8 +5,8 @@ fprintf ('written by Iyad Ba Gari - updated Mar 2021 - enigma.ini.usc.edu\n');
 
 
 % *Read label (cortical):*
-[vertex_coordsR, facesR] = read_surf(fullfile(indir,subject,'surf', 'rh.pial'));
-[vertex_coordsL, facesL] = read_surf(fullfile(indir,subject,'surf', 'lh.pial'));
+[vertex_coordsR, facesR] = read_surf(fullfile(indir,subject,'surf', 'rh.pial.T1'));
+[vertex_coordsL, facesL] = read_surf(fullfile(indir,subject,'surf', 'lh.pial.T1'));
 
 % *Read FreeSurfer annotation file:*
 cd(fullfile(indir, subject, 'label'));
