@@ -153,7 +153,7 @@ Quality control of the FreeSurfer outputs is performed using the ENIGMA QA pipel
   --outdir "/mnt/c/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs" \
   --script "/mnt/c/Users/kramerlab/Documents/SCI_Map/ENIGMA-FreeSurfer-protocol-main" \
   --matlab "/mnt/c/Program Files/MATLAB/R2023a/bin/matlab.exe" \
-  --fs7 false \
+  --fs7 true \
   --step_1 true \
   --step_2 true \
   --step_3 true \
@@ -266,6 +266,86 @@ Review each subject's QC HTML files thoroughly before proceeding to the next ste
 
 
 These HTML files provide interactive views of the segmentation results for detailed quality assessment. Use them in conjunction with the ENIGMA QC guidelines to evaluate segmentation quality.
+### Cortical  Outlier Detection and Subcortical Histogram Plots
+
+After visual QC, statistical quality control is performed using R scripts to generate histograms and identify potential outliers in the volumetric data.
+
+#### Prerequisites
+
+Before running the outlier detection and histogram analysis scripts, ensure you have:
+
+1. **R and RStudio Installation**
+   - A working installation of R (tested with version 4.4.0)
+   - RStudio IDE (recommended for easier workflow)
+   - The scripts in this repository were specifically tested with R version 4.4.0
+
+2. **Required R Packages**
+   - readr
+   - dplyr
+   These will be automatically installed if missing when running the scripts.
+
+**Subcortical Histogram Analysis:**
+The `subcortical_histogram_plots.R` script:
+- Generates histograms for each subcortical structure (21 plots) plus ICV (1 plot)
+- Creates summary statistics for each structure
+- Helps identify statistical outliers that may need additional QC review
+- Outputs:
+  - PNG histogram plots for each structure
+  - SummaryStats.txt with statistics for each region
+  - Asymmetry measures between left/right structures
+
+**Running the Subcortical Analysis:**
+1. Ensure your `LandRvolumes.csv` file is in the target directory
+2. Run the R script:
+
+**Cortical Outlier Detection:**
+The `subcortical_histogram_plots.R` script performs outlier detection on cortical thickness and surface area measurements.
+- Outputs in the R console messages about the structures from subjects marked as outliers.
+- Gives you an idea of which areas and which subjects are potentially problematic and could be flagged for exclusion
+
+
+
+### Recording QC Results
+
+The ENIGMA protocol provides a standardized Excel template (ENIGMA_Cortical_QC_Template.xlsx) for recording QC decisions. To use this template:
+
+1. **Open the Template**
+   - Make a copy of ENIGMA_Cortical_QC_Template.xlsx for your study
+   - Save it with a descriptive name (e.g., "SCI_MAP_QC_Results.xlsx")
+
+2. **Fill in Required Fields**
+   - Subject ID: Enter the subject identifier exactly as used in FreeSurfer
+   - Pass/Fail: Mark as:
+     - PASS (1) - Acceptable quality
+     - FAIL (0) - Unusable due to quality issues
+   - Notes: Document specific issues observed, such as:
+     - "Significant dura inclusion in left temporal lobe"
+     - "Motion artifacts affecting subcortical segmentation"
+     - "Poor gray/white matter contrast in occipital region"
+
+3. **Additional Columns**
+   - Rating Confidence (1-3):
+     1. Low confidence
+     2. Medium confidence
+     3. High confidence
+   - Specific Issue Flags:
+     - Motion_Artifact (0/1)
+     - Skull_Strip_Error (0/1)
+     - WM_Segmentation_Error (0/1)
+     - Pial_Overestimation (0/1)
+
+4. **Best Practices**
+   - Complete the QC spreadsheet while viewing the QC HTML files
+   - Be consistent in your rating criteria across subjects
+   - When in doubt, consult the ENIGMA QC guide examples
+   - Regular backups of the QC spreadsheet are recommended
+
+The completed QC spreadsheet will be essential for:
+- Tracking which subjects to include/exclude in analyses
+- Documenting quality issues for methods sections
+- Sharing QC decisions with collaborators
+- Future reference and reproducibility
+
 
 ### Step 3: Data Organization for Brain Age Prediction (aparc_aseg_pybrain.sh)
 

@@ -2,7 +2,7 @@
 #DPH
 
 #Read in the cortical thickness measures obtained from Step 1 of the protocols
-dat=read.csv("/enigma/Parent_Folder/FreeSurfer/measures/CorticalMeasuresENIGMA_ThickAvg.csv",stringsAsFactors=FALSE)
+dat=read.csv("C:/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs/measures/CorticalMeasuresENIGMA_ThickAvg.csv",stringsAsFactors=FALSE)
 
 #Check for duplicated SubjIDs
 if(anyDuplicated(dat[,c("SubjID")]) != 0) { stop('You have duplicate SubjIDs in your CorticalMeasuresENIGMA_ThickAvg.csv file.\nMake sure there are no repeat SubjIDs.') }
@@ -34,7 +34,7 @@ for(i in 1:nrow(dat)){
 }
 
 #Read in the cortical thickness measures obtained from Step 1 of the protocols
-dat=read.csv("/enigma/Parent_Folder/FreeSurfer/measures/CorticalMeasuresENIGMA_SurfAvg.csv",stringsAsFactors=FALSE)
+dat=read.csv("C:/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs/measures/CorticalMeasuresENIGMA_SurfAvg.csv",stringsAsFactors=FALSE)
 
 #Check for duplicated SubjIDs
 if(anyDuplicated(dat[,c("SubjID")]) != 0) { stop('You have duplicate SubjIDs in your CorticalMeasuresENIGMA_SurfAvg.csv file.\nMake sure there are no repeat SubjIDs.') }
