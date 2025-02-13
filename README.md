@@ -266,7 +266,7 @@ Review each subject's QC HTML files thoroughly before proceeding to the next ste
 
 
 These HTML files provide interactive views of the segmentation results for detailed quality assessment. Use them in conjunction with the ENIGMA QC guidelines to evaluate segmentation quality.
-### Cortical  Outlier Detection and Subcortical Histogram Plots
+### Cortical Outlier Detection and Subcortical Histogram Plots
 
 After visual QC, statistical quality control is performed using R scripts to generate histograms and identify potential outliers in the volumetric data.
 
@@ -286,23 +286,56 @@ Before running the outlier detection and histogram analysis scripts, ensure you 
 
 **Subcortical Histogram Analysis:**
 The `subcortical_histogram_plots.R` script:
-- Generates histograms for each subcortical structure (21 plots) plus ICV (1 plot)
-- Creates summary statistics for each structure
-- Helps identify statistical outliers that may need additional QC review
-- Outputs:
-  - PNG histogram plots for each structure
-  - SummaryStats.txt with statistics for each region
-  - Asymmetry measures between left/right structures
 
-**Running the Subcortical Analysis:**
-1. Ensure your `LandRvolumes.csv` file is in the target directory
-2. Run the R script:
+1. **Generates Histograms and Statistics**
+   - Creates histograms for each subcortical structure (21 plots)
+   - Generates an additional histogram for ICV (1 plot) 
+   - Outputs summary statistics for each region in SummaryStats.txt
+   - Calculates asymmetry measures between left/right structures
+
+2. **Quality Control Features**
+   - Handles missing values marked with 'x' or 'X'
+   - Checks for negative volumes that may indicate segmentation errors
+   - Reports number of subjects marked as poorly segmented for each structure
+   - Helps identify statistical outliers needing additional review
+
+3. **Output Files**
+   - PNG histogram plots for each structure and ICV
+   - SummaryStats.txt containing:
+     - Number of subjects excluded
+     - Sample size used
+     - Mean volume
+     - Standard deviation
+   - Asymmetry measures between bilateral structures
+   - ENIGMA_Plots.RData storing plot data
+
+4. **Statistical Measures**
+   - Calculates basic statistics (mean, SD) for each structure
+   - Computes bilateral averages for paired structures
+   - Generates asymmetry indices using (L-R)/(L+R) formula
+   - Adapts histogram bins based on sample size
+
+The `subcortical_histogram_plots.R` script requires editing the following paths:
+
+Lines 25-26 to your ENIGMA_outputs/measures/LandRvolumes.csv file and the output directory:
+```R
+input_path <- "C:/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs/measures/LandRvolumes.csv"
+output_dir <- "C:/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs/measures"
+```
 
 **Cortical Outlier Detection:**
-The `subcortical_histogram_plots.R` script performs outlier detection on cortical thickness and surface area measurements.
+The `cortical_outliers.R` script performs outlier detection on cortical thickness and surface area measurements.
 - Outputs in the R console messages about the structures from subjects marked as outliers.
 - Gives you an idea of which areas and which subjects are potentially problematic and could be flagged for exclusion
 
+The `cortical_outliers.R` script requires editing the following paths:
+
+Lines 5 and 37 to point to your ENIGMA_outputs/measures/CorticalMeasuresENIGMA_ThickAvg.csv and CorticalMeasuresENIGMA_SurfAvg.csv files:
+
+```R
+dat=read.csv("C:/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs/measures/CorticalMeasuresENIGMA_ThickAvg.csv",stringsAsFactors=FALSE)
+dat=read.csv("C:/Users/kramerlab/Documents/freesurfer_SCI_extra_subjects/ENIGMA_outputs/measures/CorticalMeasuresENIGMA_SurfAvg.csv",stringsAsFactors=FALSE)
+```
 
 
 ### Recording QC Results
