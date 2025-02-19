@@ -499,7 +499,8 @@ If you encounter any issues with this pipeline or have questions about its imple
 Oscar Ortiz (Project Lead) 
 Email: oscar.ortiz.angulo@gmail.com
 
-
+Ryan Loke 
+Email: lokeryan@student.ubc.ca
 
 
 
