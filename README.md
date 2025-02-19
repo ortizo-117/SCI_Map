@@ -491,6 +491,27 @@ If you have trouble accessing these files, please contact:
 - The original PyBrain repository maintainers
 - The SCI_MAP project coordinators
 
+## Visualizing Results
+
+After running the pipeline, you can visualize your results using the provided visualization scripts. The following plots and analyses will be generated:
+
+1. **Brain Age Distribution Plots**
+   - Comparison of predicted vs. chronological age
+   - Distribution of brain age delta (predicted - chronological)
+   - Group comparisons between SCI and control cohorts
+
+2. **Statistical Analysis Outputs**
+   - Group-level statistics
+   - Effect size calculations
+   - Correlation analyses with clinical variables
+
+3. **Regional Analysis Visualizations**
+   - Brain maps showing regional contributions
+   - Region-specific comparisons between groups
+
+test
+
+The visualization outputs will be saved in your project's results directory:
 
 ## Support and Contact
 
