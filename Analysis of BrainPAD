@@ -1,0 +1,45 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import pingouin as pg
+from fontTools.cffLib import FontDict
+from scipy.stats import mannwhitneyu, kruskal
+from cliffs_delta import cliffs_delta
+
+PyB_path = "/Volumes/team/INANL/56_Valentina_Haas/brain_age_centilbrain/05_PredictedBrainAGE/Predicted_BrainAGE_PyBrain.xlsx"
+df_pybrain = pd.read_excel(PyB_path)
+print(df_pybrain.columns)
+
+
+# Define cohort colors
+cohort_palette = {
+    "control": "#AEC6E8",  # Light Blue
+    "SCI_nNP": "#FFCC99",  # Light Orange
+    "SCI_P": "#99D8A0"     # Light Green
+}
+
+# Create the boxplot
+plt.figure(figsize=(10, 6))
+sns.boxplot(x="Cohort", y="BrainPAD", data=df_pybrain, palette=cohort_palette, showfliers=False, width=0.6, boxprops={'alpha': 0.5})
+
+# Add individual data points (stripplot)
+sns.stripplot(x="Cohort", y="BrainPAD", data=df_pybrain, color="black", jitter=True, size=6, alpha=0.7)
+
+# Add mean values as triangles
+means = df_pybrain.groupby("Cohort")["BrainPAD"].mean()
+for i, cohort in enumerate(df_pybrain["Cohort"].unique()):
+    plt.scatter(i, means[cohort], color="black", marker="^", s=100, label="Mean" if i == 0 else "")
+
+# Set labels & title
+plt.title("BrainPAD Comparison Across Cohorts", fontsize=16, fontweight="bold")
+plt.xlabel("Cohort", fontsize=14, fontweight="bold")
+plt.ylabel("BrainPAD", fontsize=14, fontweight="bold")
+plt.xticks(fontsize=12)
+plt.yticks(fontsize=12)
+plt.legend(title="Statistics", loc="upper right")
+
+# Display plot
+plt.grid(alpha=0.3)
+plt.tight_layout()
+plt.savefig("/Volumes/team/INANL/56_Valentina_Haas/brain_age_centilbrain/06_Images/PyBrain/BrainPad across cohorts.png")
