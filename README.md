@@ -505,8 +505,9 @@ After running the pipeline, you can visualize your results using the provided vi
    output_path2 = "/path/to/output/Chronological_vs_BrainAge.png"  # Path where you want to save the plot for Chronological Age vs Predicted Brain Age (PyBrain)
    output_path3 = "/path/to/output/BrainPAD_vs_Age.png"  # Path where you want to save the plot for BrainPAD vs Age
    output_path4 = "/path/to/output/BrainPAD_across_sex.png"  # Path where you want to save the results for Group Comparisons
-   output_path5 = "/path/to/output/BrainPAD_across_cohorts.csv"  # Path where you want to save the results for Group Comparisons
-   output_path6 = "/path/to/output/BrainPAD_across_sex.csv"  # Path where you want to save the results for Group Comparisons
+   output_path5 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png"  # Path where you want to save the results for Group Comparisons
+   output_path6 = "/path/to/output/BrainPAD_across_cohorts.csv"  # Path where you want to save the results for Group Comparisons
+   output_path7 = "/path/to/output/BrainPAD_across_sex.csv"  # Path where you want to save the results for Group Comparisons
    ```
 
 2. Run the script:
@@ -518,7 +519,7 @@ After running the pipeline, you can visualize your results using the provided vi
 
 #### 1. Visualization Plots
 
-The script generates four key visualizations:
+The script generates five key visualizations:
 
 **a. BrainPAD Distribution**
 - Boxplot comparing Brain-Predicted Age Difference across cohorts
@@ -542,6 +543,12 @@ The script generates four key visualizations:
 - Individual data points overlay
 - Color-coded by cohort
 
+**e. Time Since Injury Analysis**
+- BrainPAD plotted against time since injury for SCI participants
+- Separate trend lines for each SCI cohort
+- Correlation statistics displayed
+- Individual data points color-coded by cohort
+
 #### 2. Statistical Analysis
 
 The script performs comprehensive statistical testing:
@@ -560,20 +567,21 @@ The script performs comprehensive statistical testing:
 - Separate male/female comparisons between all cohorts
 - Effect sizes calculated for each comparison
 
-All statistical results are saved to a CSV file containing:
+All statistical results are saved to CSV files containing:
 - Comparison groups
 - Test methods
 - Statistical significance
 - Effect sizes
 
 ### Output Files
-The Analysis of BrainPAD.py script generates six files:
+The Analysis of BrainPAD.py script generates seven files:
 1. BrainPAD_comparison.png: Boxplot comparing BrainPAD across cohorts
 2. Chronological_vs_BrainAge.png: Scatter plot of chronological vs predicted brain age
 3. BrainPAD_vs_Age.png: BrainPAD plotted against chronological age
 4. BrainPAD_across_sex.png: Sex-specific BrainPAD comparisons
-5. BrainPAD_across_cohorts.csv: Statistical results for overall cohort comparisons
-6. BrainPAD_across_sex.csv: Statistical results for sex-specific cohort comparisons
+5. BrainPAD_vs_TimeSinceInjury.png: BrainPAD vs time since injury analysis
+6. BrainPAD_across_cohorts.csv: Statistical results for overall cohort comparisons
+7. BrainPAD_across_sex.csv: Statistical results for sex-specific cohort comparisons
 
 ## Support and Contact
 
