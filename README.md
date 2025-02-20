@@ -492,6 +492,37 @@ If you have trouble accessing these files, please contact:
 - The SCI_MAP project coordinators
 
 
+### Step 6: Structural Analyses
+
+Following all previous steps and compiling all the data, one last R script will be used to analyze structural differences between individuals with spinal cord injury (with and without neuropathic pain) and healthy individuals using the freesurfer recon_all outputs.
+The full script can be found under the structural-analysis tab and the condensed raw code can be found in the file named `FreesurferAnalysisScriptCondensed`. 
+
+The RMarkdown file contains a much more detailed breakdown of the pipeline if you are unfamiliar with this language and interface, and can be referenced for the full analysis.
+
+**Prerequisites**
+
+1. Working version of R and RStudio (same as above), with the following packages
+   - tidyverse
+   - data.table
+   - multcomp
+   - effsize
+   - writexl
+   - ggpubr
+2. Freesurfer outputs compiled
+   - Cortical measurments taken from the Destrieux atlas (same as before)
+   - Subcortical measurements from the aseg file (same as before)
+   - Cortical thickness
+   - Intracranial volume
+
+**Outputs**   
+
+Following analysis you should end up with 10 .csv files which will be sent back to us for meta-analysis.
+
+1. 4 .csv files comparing strucutral measurements between individuals with spinal cord injury (with and without neuropahtic pain) and healthy individuals.
+2. 4 .csv files comparing subcortical volumes between individuals with spinal cord injury (with and without neuropathic pain) and healthy individuals.
+3. 1 .csv summary file containing information on cortical thickness.
+4. 1 .csv summary file containing information on intracranial volume.
+
 ## Support and Contact
 
 If you encounter any issues with this pipeline or have questions about its implementation, please contact:
