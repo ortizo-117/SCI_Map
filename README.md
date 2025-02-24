@@ -9,6 +9,7 @@ SCI_MAP is designed to analyze structural brain differences between individuals 
 ![SCI_MAP Study Banner](assets/study_banner.png)
 
 
+
 ## Prerequisites
 
 To participate in this project, you need:
@@ -495,7 +496,6 @@ If you have trouble accessing these files, please contact:
 
 ## Analyzing and Visualizing Brain Age Results
 
-
 This section explains how to analyze and visualize brain age prediction results. The provided scripts generate statistical summaries and visualizations to help understand brain age differences between cohorts.
 
 The visualization script ('Analysis of BrainPAD.py') creates various plots and statistical comparisons to help interpret your results.
@@ -504,22 +504,24 @@ The visualization script ('Analysis of BrainPAD.py') creates various plots and s
 1. Configure the file paths in the script:
    ```python
    # Update these paths in Analysis of BrainPAD.py:
-   PyB_path = "/path/to/your/predicted_results.xlsx"  # Path to your predicted brain age results in Excel format
-   output_path1 = "/path/to/output/summary_statistics.csv" # Path where you want to save the summary statistics
-   output_path2 = "/path/to/output/BrainPAD_comparison.png"  # Path where you want to save the plot for BrainPAD across cohorts
-   output_path3 = "/path/to/output/Chronological_vs_BrainAge.png" # Path where you want to save the plot for Chronological Age vs Predicted Brain Age (PyBrain)
-   output_path4 = "/path/to/output/BrainPAD_vs_Age.png" # Path where you want to save the plot for BrainPAD vs Age
-   output_path5 = "/path/to/output/BrainPAD_across_sex.png" # Path where you want to save the results for Group Comparisons
-   output_path6 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png" # Path where you want to save the results for Group Comparisons
-   output_path7 = "/path/to/output/BrainPAD_across_cohorts.csv" # Path where you want to save the results for Group Comparisons
-   output_path8 = "/path/to/output/BrainPAD_across_sex.csv" # Path where you want to save the results for Group Comparisons
+   PyB_path = "/path/to/your/predicted_results.xlsx"  # Excel file containing brain age predictions
+   output_path1 = "/path/to/output/summary_statistics.csv"  # CSV file for summary statistics
+   output_path2 = "/path/to/output/BrainPAD_comparison.png"  # Plot comparing BrainPAD across cohorts
+   output_path3 = "/path/to/output/Chronological_vs_BrainAge.png"  # Plot comparing chronological vs predicted brain age
+   output_path4 = "/path/to/output/BrainPAD_vs_Age.png"  # Plot showing BrainPAD vs age relationship
+   output_path5 = "/path/to/output/BrainPAD_across_sex.png"  # Plot showing sex-specific BrainPAD comparisons
+   output_path6 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png"  # Plot showing BrainPAD vs injury duration + correlation
+   output_path7 = "/path/to/output/BrainPAD_across_cohorts.csv"  # Statistical results for cohort comparisons
+   output_path8 = "/path/to/output/BrainPAD_across_sex.csv"  # Statistical results for sex-specific analyses
+   output_path9 = "/path/to/output/BrainPAD_acorss_AIS.csv" # Statistical results for AIS-specific comparison
+   output_path10 = "/path/to/output/Chi2_AIS.csv" # Statistical results for AIS-specific comparison
+   output_path11 = "/path/to/output/ChronologicalAge_Comparison.csv" # Statistical results for chronological age comparison
    ```
 
 2. Run the script:
    ```bash
    python Analysis of BrainPAD.py
    ```
-
 
 ### Generated Outputs
 
@@ -542,7 +544,7 @@ The script generates five key visualizations:
 - Boxplot comparing Brain-Predicted Age Difference across cohorts
 - Individual data points overlay
 - Cohort means marked with black triangles
-- Color-coded by group (Control, SCI with/without pain)
+- Color-coded by group (Control: Light Blue, SCI without pain: Light Orange, SCI with pain: Light Green)
 
 **b. Age Comparison Plot**
 - Scatter plot of chronological vs. predicted brain age
@@ -563,8 +565,8 @@ The script generates five key visualizations:
 **e. Time Since Injury Analysis**
 - BrainPAD plotted against time since injury for SCI participants
 - Separate trend lines for each SCI cohort
-- Correlation statistics displayed
-- Individual data points color-coded by cohort
+- Statistical annotations including test results, p-values and effect sizes
+- Regression statistics (R² and p-value)
 
 #### 3. Statistical Analysis
 
@@ -572,26 +574,26 @@ The script performs comprehensive statistical testing:
 
 **a. Distribution Analysis**
 - Normality testing using Shapiro-Wilk and Kolmogorov-Smirnov tests
-- Automatic selection of parametric vs non-parametric methods
+- Automatic selection of parametric (t-test) vs non-parametric (Mann-Whitney U) methods
 
 **b. Group Comparisons**
 
 *Overall Cohort Analysis:*
 - Pairwise comparisons between all cohorts (Controls, SCI with/without pain)
-- Effect sizes using Cohen's d (normal) or Cliff's delta (non-normal)
+- Effect sizes using Cohen's d (for normal distributions) or Cliff's delta (for non-normal)
+- Sample sizes reported for each comparison
 
 *Sex-Specific Analysis:* 
 - Separate male/female comparisons between all cohorts
 - Effect sizes calculated for each comparison
+- Sample sizes included
 
-All statistical results are saved to CSV files containing:
-- Comparison groups
-- Test methods
-- Statistical significance
-- Effect sizes
+*AIS Analysis:*
+- Chi-square test for AIS distribution between cohorts
+- Pairwise comparisons across AIS grades including controls
 
 ### Output Files
-The Analysis of BrainPAD.py script generates eight files:
+The Analysis of BrainPAD.py script generates eleven files:
 1. summary_statistics.csv: Detailed summary statistics for each cohort
 2. BrainPAD_comparison.png: Boxplot comparing BrainPAD across cohorts
 3. Chronological_vs_BrainAge.png: Scatter plot of chronological vs predicted brain age
@@ -600,6 +602,9 @@ The Analysis of BrainPAD.py script generates eight files:
 6. BrainPAD_vs_TimeSinceInjury.png: BrainPAD vs time since injury analysis
 7. BrainPAD_across_cohorts.csv: Statistical results for overall cohort comparisons
 8. BrainPAD_across_sex.csv: Statistical results for sex-specific cohort comparisons
+9. BrainPAD_acorss_AIS.csv: Statistical results for AIS-specific comparisons
+10. Chi2_AIS.csv: Chi-square test results for AIS distribution
+11. ChronologicalAge_Comparison.csv: Statistical results for age comparisons
 
 ## Support and Contact
 
