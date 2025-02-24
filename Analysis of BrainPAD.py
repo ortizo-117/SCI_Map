@@ -7,7 +7,6 @@
 
 ###############################################################################
 
-
 # Import required libraries
 import pandas as pd  # For data manipulation and analysis
 import matplotlib.pyplot as plt  # For creating plots and visualizations
@@ -16,6 +15,8 @@ import seaborn as sns  # For statistical data visualization
 from scipy import stats  # For statistical tests
 from itertools import combinations  # For generating combinations of groups
 from cliffs_delta import cliffs_delta  # For calculating Cliff's delta effect size
+import statsmodels.api as sm # For regression analysis
+import os # For file operations
 
 # Define file paths for input data and output files
 PyB_path = "/path/to/your/predicted_results.xlsx"  # Excel file containing brain age predictions
@@ -24,11 +25,12 @@ output_path2 = "/path/to/output/BrainPAD_comparison.png"  # Plot comparing Brain
 output_path3 = "/path/to/output/Chronological_vs_BrainAge.png"  # Plot comparing chronological vs predicted brain age
 output_path4 = "/path/to/output/BrainPAD_vs_Age.png"  # Plot showing BrainPAD vs age relationship
 output_path5 = "/path/to/output/BrainPAD_across_sex.png"  # Plot showing sex-specific BrainPAD comparisons
-output_path6 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png"  # Plot showing BrainPAD vs injury duration
+output_path6 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png"  # Plot showing BrainPAD vs injury duration + correlation 
 output_path7 = "/path/to/output/BrainPAD_across_cohorts.csv"  # Statistical results for cohort comparisons
 output_path8 = "/path/to/output/BrainPAD_across_sex.csv"  # Statistical results for sex-specific analyses
-
-# Load the data from Excel file
+output_path9 = "/path/to/output/BrainPAD_acorss_AIS.csv" # Statistical results for AIS-specific comparison
+output_path10 = "/path/to/output/Chi2_AIS.csv" # Statistical results for AIS-specific comparison
+output_path11 = "/path/to/output/ChronologicalAge_Comparison.csv"   # Statistical results for chronological age comparison
 df_pybrain = pd.read_excel(PyB_path)
 
 # Convert relevant columns to numeric format, handling any errors
@@ -64,7 +66,8 @@ for cohort in cohort_order:
     ais_distribution = subset["AIS"].value_counts().to_dict() if "AIS" in subset.columns else "Not Available"
 
     # Calculate additional clinical measures
-    time_since_sci_mean = subset["Time since SCI (years) "].mean() if "Time since SCI (years) " in subset.columns else np.nan
+    valid_time_since_sci = subset["Time since SCI (years) "].notna().sum() if "Time since SCI (years) " in subset.columns else 0
+    time_since_sci_mean = subset["Time since SCI (years) "].mean() if valid_time_since_sci > 2 else "Not Available"
     pain_meds_count = subset["pain meds"].value_counts().to_dict() if "pain meds" in subset.columns else "Not Available"
     pcs_mean = subset["PCS"].mean() if "PCS" in subset.columns else np.nan
     bdi_mean = subset["BDI"].mean() if "BDI" in subset.columns else np.nan
@@ -172,7 +175,7 @@ fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(14, 6), sharey=True)
 
 # Plot female data
 sns.boxplot(x="Cohort", y="BrainPAD", data=df_female, order=cohort_order, palette=cohort_palette,
-            showfliers=False, width=0.6, ax=axes[0])
+            showfliers=False, width=0.6, ax=axes[0], legend=False)
 sns.stripplot(x="Cohort", y="BrainPAD", data=df_female, hue="Cohort", order=cohort_order, jitter=True,
               size=8, alpha=0.7, color="black", ax=axes[0])
 axes[0].set_title("BrainPAD - Female", fontsize=14, fontweight="bold")
@@ -194,67 +197,77 @@ plt.savefig(output_path5)
 
 
 # Analyze BrainPAD vs Time Since Injury for SCI participants
-# Filter for SCI participants only
+# Filter the dataset for SCI participants only
 df_sci = df_pybrain[df_pybrain["Cohort"].isin(["SCI_nNP", "SCI_P"])].copy()
 
-# Clean column name
+# Rename column to avoid whitespace issues
 df_sci.rename(columns={"Time since SCI (years) ": "Time since SCI (years)"}, inplace=True)
 
-# Remove missing values
+# Drop rows where Time Since SCI or BrainPAD is NaN
 df_sci = df_sci[["Time since SCI (years)", "BrainPAD", "Cohort"]].dropna()
 
-# Convert time since SCI to numeric
+# Convert Time Since SCI to numeric
 df_sci["Time since SCI (years)"] = pd.to_numeric(df_sci["Time since SCI (years)"], errors="coerce")
 
-# Perform correlation analysis if enough data points
-if len(df_sci) < 3:
-    print("Not enough data for correlation analysis.")
-    corr_coef, p_value, correlation_type = None, None, "No Analysis"
+# Group Data by Cohort
+sci_nnp_tsi = df_sci[df_sci["Cohort"] == "SCI_nNP"]["Time since SCI (years)"].dropna()
+sci_p_tsi = df_sci[df_sci["Cohort"] == "SCI_P"]["Time since SCI (years)"].dropna()
+
+# Check Normality
+shapiro_nnp = stats.shapiro(sci_nnp_tsi)[1]
+shapiro_p = stats.shapiro(sci_p_tsi)[1]
+
+# Choose Statistical Test
+if shapiro_nnp > 0.05 and shapiro_p > 0.05:
+    tsi_test = "t-test"
+    test_stat, p_tsi = stats.ttest_ind(sci_nnp_tsi, sci_p_tsi)
+    effect_size_tsi = (sci_nnp_tsi.mean() - sci_p_tsi.mean()) / np.sqrt((sci_nnp_tsi.std()**2 + sci_p_tsi.std()**2) / 2)
 else:
-    # Check data normality
-    if len(df_sci["Time since SCI (years)"].unique()) > 2 and len(df_sci["BrainPAD"].unique()) > 2:
-        shapiro_time = stats.shapiro(df_sci["Time since SCI (years)"])[1]
-        shapiro_brainpad = stats.shapiro(df_sci["BrainPAD"])[1]
+    tsi_test = "Mann-Whitney U"
+    test_stat, p_tsi = stats.mannwhitneyu(sci_nnp_tsi, sci_p_tsi)
+    effect_size_tsi, _ = cliffs_delta(sci_nnp_tsi, sci_p_tsi)
 
-        # Choose correlation method based on normality
-        if shapiro_time > 0.05 and shapiro_brainpad > 0.05:
-            correlation_type = "Pearson"
-            corr_coef, p_value = stats.pearsonr(df_sci["Time since SCI (years)"], df_sci["BrainPAD"])
-        else:
-            correlation_type = "Spearman"
-            corr_coef, p_value = stats.spearmanr(df_sci["Time since SCI (years)"], df_sci["BrainPAD"])
-    else:
-        correlation_type = "No Analysis"
-        corr_coef, p_value = None, None
+# Perform Linear Regression
+X = df_sci["Time since SCI (years)"]
+y = df_sci["BrainPAD"]
+X = sm.add_constant(X)  # Add intercept
 
-# Define colors for SCI groups
+model = sm.OLS(y, X, missing="drop").fit()
+regression_p = model.pvalues["Time since SCI (years)"]
+regression_r2 = model.rsquared
+
+# Define Colors for SCI Groups
 cohort_palette = {"SCI_nNP": "#FFCC99", "SCI_P": "#99D8A0"}
 
-# Create scatter plot
+# Create Scatter Plot
 plt.figure(figsize=(10, 6))
 sns.scatterplot(x="Time since SCI (years)", y="BrainPAD", hue="Cohort",
                 data=df_sci, palette=cohort_palette, s=70, alpha=0.8, edgecolor="black")
 
-# Add trend lines
+# Add Trend Lines
 sns.regplot(x="Time since SCI (years)", y="BrainPAD", data=df_sci[df_sci["Cohort"] == "SCI_nNP"],
             scatter=False, color="#FFCC99", line_kws={"linestyle": "--", "linewidth": 2})
 sns.regplot(x="Time since SCI (years)", y="BrainPAD", data=df_sci[df_sci["Cohort"] == "SCI_P"],
             scatter=False, color="#99D8A0", line_kws={"linestyle": "--", "linewidth": 2})
 
-# Customize plot appearance
+# Customize Labels & Title
 plt.xlabel("Time Since Injury (Years)", fontsize=14, fontweight="bold")
 plt.ylabel("BrainPAD", fontsize=14, fontweight="bold")
 plt.title("BrainPAD vs Time Since Injury (SCI Participants)", fontsize=16, fontweight="bold")
 
-# Add correlation statistics if available
-if corr_coef is not None:
-    stats_text = f"{correlation_type} r = {corr_coef:.2f}, p = {p_value:.3f}"
-    plt.annotate(stats_text, xy=(0.05, 0.95), xycoords="axes fraction", fontsize=12, fontweight="bold")
+# Add Statistical Annotations
+stats_text = f"{tsi_test}: p = {p_tsi:.3f}, ES = {effect_size_tsi:.2f}\n" \
+             f"Regression: R² = {regression_r2:.3f}, p = {regression_p:.3f}"
+plt.annotate(stats_text, xy=(0.025, 0.9), xycoords="axes fraction", fontsize=12, fontweight="bold")
 
+# Adjust Legend & Save Plot
 plt.legend(title="Cohort", loc="upper right")
 plt.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig(output_path6)
+temp_path = output_path6.replace(".png", "_temp.png")
+plt.savefig(temp_path)
+os.rename(temp_path, output_path6)
+
 
 # Perform statistical analysis
 # Define function to calculate Cohen's d effect size
@@ -281,21 +294,29 @@ for group1, group2 in combinations(cohort_order, 2):
     data1 = df_pybrain[df_pybrain["Cohort"] == group1]["BrainPAD"].dropna()
     data2 = df_pybrain[df_pybrain["Cohort"] == group2]["BrainPAD"].dropna()
 
+    n1, n2 = len(data1), len(data2)  # Sample sizes
+
     # Choose appropriate statistical test based on normality
     if is_normal:
         test_stat, p_value = stats.ttest_ind(data1, data2)
-        test_used = "t-test"
+        test_used = f"t-test (t={test_stat:.2f})"
         effect_size = cohen_d(data1, data2)
+
     else:
         test_stat, p_value = stats.mannwhitneyu(data1, data2)
-        test_used = "Mann-Whitney U"
+        test_used = f"Mann-Whitney U (U={test_stat:.2f})"
         effect_size, _ = cliffs_delta(data1, data2)
 
-    comparison_results.append([group1, group2, test_used, p_value, effect_size])
+
+    # Always format df as n1=XX, n2=XX
+    df_value = f"n1={n1}, n2={n2}"
+
+    comparison_results.append([group1, group2, test_used, p_value, effect_size, df_value])
 
 # Create and save results DataFrame
-df_comparisons = pd.DataFrame(comparison_results, columns=["Group1", "Group2", "Test Used", "p-value", "Effect Size"])
+df_comparisons = pd.DataFrame(comparison_results, columns=["Group1", "Group2", "Test Used", "p-value", "Effect Size", "Sample Size"])
 df_comparisons.to_csv(output_path7)
+
 
 # Perform sex-specific statistical analysis
 # Split data by sex
@@ -308,40 +329,155 @@ for group1, group2 in combinations(cohort_order, 2):
     data1 = df_female[df_female["Cohort"] == group1]["BrainPAD"].dropna()
     data2 = df_female[df_female["Cohort"] == group2]["BrainPAD"].dropna()
 
+    n1, n2 = len(data1), len(data2)  # Sample sizes
+
     # Choose appropriate test based on normality
     if is_normal:
         test_stat, p_value = stats.ttest_ind(data1, data2)
-        test_used = "t-test"
+        test_used = f"t-test (t={test_stat:.2f})"
         effect_size = cohen_d(data1, data2)
     else:
         test_stat, p_value = stats.mannwhitneyu(data1, data2)
-        test_used = "Mann-Whitney U"
+        test_used = f"Mann-Whitney U (U={test_stat:.2f})"
         effect_size, _ = cliffs_delta(data1, data2)
 
-    female_results.append(["Female", group1, group2, test_used, p_value, effect_size])
+    # Store results with sample sizes
+    df_value = f"n1={n1}, n2={n2}"
+    female_results.append(["Female", group1, group2, test_used, p_value, effect_size, df_value])
 
 # Analyze male cohorts
 male_results = []
 for group1, group2 in combinations(cohort_order, 2):
     data1 = df_male[df_male["Cohort"] == group1]["BrainPAD"].dropna()
     data2 = df_male[df_male["Cohort"] == group2]["BrainPAD"].dropna()
-
+    n1, n2 = len(data1), len(data2)  # Sample sizes
     # Choose appropriate test based on normality
     if is_normal:
         test_stat, p_value = stats.ttest_ind(data1, data2)
-        test_used = "t-test"
+        test_used = f"t-test (t={test_stat:.2f})"
         effect_size = cohen_d(data1, data2)
     else:
         test_stat, p_value = stats.mannwhitneyu(data1, data2)
-        test_used = "Mann-Whitney U"
+        test_used = f"Mann-Whitney U (U={test_stat:.2f})"
         effect_size, _ = cliffs_delta(data1, data2)
 
-    male_results.append(["Male", group1, group2, test_used, p_value, effect_size])
+    # Store results with sample sizes
+    df_value = f"n1={n1}, n2={n2}"
+    male_results.append(["Male", group1, group2, test_used, p_value, effect_size, df_value])
 
 # Create and combine results DataFrames
-df_female_comparisons = pd.DataFrame(female_results, columns=["Sex", "Group1", "Group2", "Test Used", "p-value", "Effect Size"])
-df_male_comparisons = pd.DataFrame(male_results, columns=["Sex", "Group1", "Group2", "Test Used", "p-value", "Effect Size"])
+df_female_comparisons = pd.DataFrame(female_results, columns=["Sex", "Group1", "Group2", "Test Used", "p-value", "Effect Size", "Sample Size"])
+df_male_comparisons = pd.DataFrame(male_results, columns=["Sex", "Group1", "Group2", "Test Used", "p-value", "Effect Size", "Sample Size"])
 df_sex_comparisons = pd.concat([df_female_comparisons, df_male_comparisons], ignore_index=True)
 
 # Save sex-specific results
 df_sex_comparisons.to_csv(output_path8)
+
+# AIS vs BrainPAD
+# Filter dataset for relevant groups (SCI + Controls)
+df_sci_controls = df_pybrain[df_pybrain["Cohort"].isin(["control", "SCI_nNP", "SCI_P"])].copy()
+
+# Drop rows where AIS, Cohort, or BrainPAD is NaN or inf
+df_sci_controls = df_sci_controls[["AIS", "Cohort", "BrainPAD"]].replace([np.inf, -np.inf], np.nan).dropna()
+
+# Ensure AIS & Cohort are treated as categorical variables
+df_sci_controls["AIS"] = df_sci_controls["AIS"].astype(str)  # Convert AIS to string for categorical analysis
+df_sci_controls["Cohort"] = df_sci_controls["Cohort"].astype(str)
+
+# Define order for groups
+ais_order = ["control", "D", "C", "B", "A"]  # Controls first, then AIS order
+
+# Function for Cohen's d
+def cohen_d(x, y):
+    mean_x, mean_y = np.mean(x), np.mean(y)
+    pooled_std = np.sqrt(((np.std(x, ddof=1) ** 2) + (np.std(y, ddof=1) ** 2)) / 2)
+    return (mean_x - mean_y) / pooled_std
+
+# Check Normality for Entire Dataset
+shapiro_p = stats.shapiro(df_sci_controls["BrainPAD"].dropna())[1]
+ks_p = stats.kstest(df_sci_controls["BrainPAD"].dropna(), 'norm',
+                    args=(df_sci_controls["BrainPAD"].mean(), df_sci_controls["BrainPAD"].std()))[1]
+
+# Determine Normality
+is_normal = shapiro_p > 0.05 and ks_p > 0.05
+
+# Statistical Comparisons (AIS + Controls)
+comparison_results = []
+for group1, group2 in combinations(ais_order, 2):
+    data1 = df_sci_controls[df_sci_controls["AIS"] == group1]["BrainPAD"].dropna() if group1 != "control" else df_sci_controls[df_sci_controls["Cohort"] == "control"]["BrainPAD"].dropna()
+    data2 = df_sci_controls[df_sci_controls["AIS"] == group2]["BrainPAD"].dropna() if group2 != "control" else df_sci_controls[df_sci_controls["Cohort"] == "control"]["BrainPAD"].dropna()
+
+    n1, n2 = len(data1), len(data2)  # Sample sizes
+
+    # Choose the statistical test based on normality
+    if is_normal:
+        test_stat, p_value = stats.ttest_ind(data1, data2)
+        test_used = f"t-test (t={test_stat:.2f})"
+        effect_size = cohen_d(data1, data2)
+    else:
+        test_stat, p_value = stats.mannwhitneyu(data1, data2)
+        test_used = f"Mann-Whitney U (U={test_stat:.2f})"
+        effect_size, _ = cliffs_delta(data1, data2)
+
+    # Store results
+    comparison_results.append([group1, group2, test_used, p_value, effect_size, f"n1={n1}, n2={n2}"])
+
+
+# Create DataFrame and Save
+df_comparisons = pd.DataFrame(comparison_results, columns=["Group 1", "Group 2", "Test Used", "p-value", "Effect Size", "Sample Sizes"])
+df_comparisons.to_csv(output_path9, index=False)
+
+
+# Chi-Square Test for AIS Distribution
+# Filter for SCI participants
+df_sci = df_pybrain[df_pybrain["Cohort"].isin(["SCI_P", "SCI_nNP"])]
+
+# Create a contingency table for AIS levels
+contingency_table = pd.crosstab(df_sci["Cohort"], df_sci["AIS"])
+
+# Perform Chi-Square test
+chi2_stat, p_value, dof, expected = stats.chi2_contingency(contingency_table)
+
+# Store results in a DataFrame
+df_chi2_results = pd.DataFrame({
+    "Chi-Square Statistic": [chi2_stat],
+    "Degrees of Freedom": [dof],
+    "p-value": [p_value]
+})
+
+# Define output path for saving results
+
+# Save results to CSV
+df_chi2_results.to_csv(output_path10, index=False)
+
+# Comparison Chronological Age
+# Function to Calculate Cohen's d
+def cohen_d(x, y):
+    mean_x, mean_y = np.mean(x), np.mean(y)
+    pooled_std = np.sqrt(((np.std(x, ddof=1) ** 2) + (np.std(y, ddof=1) ** 2)) / 2)
+    return (mean_x - mean_y) / pooled_std
+
+# Perform Pairwise Comparisons
+comparison_results = []
+for group1, group2 in combinations(cohort_order, 2):
+    data1 = df_pybrain[df_pybrain["Cohort"] == group1]["Age"].dropna()
+    data2 = df_pybrain[df_pybrain["Cohort"] == group2]["Age"].dropna()
+
+    # Choose statistical test
+    if is_normal:
+        test_stat, p_value = stats.ttest_ind(data1, data2)
+        test_used = f"t-test (t={test_stat:.2f})"
+        effect_size = cohen_d(data1, data2)
+    else:
+        test_stat, p_value = stats.mannwhitneyu(data1, data2)
+        test_used = f"Mann-Whitney U (U={test_stat:.2f})"
+        effect_size, _ = cliffs_delta(data1, data2)
+
+    # Store results
+    comparison_results.append([group1, group2, test_used, p_value, effect_size])
+
+# Convert to DataFrame
+df_comparisons = pd.DataFrame(comparison_results, columns=["Group1", "Group2", "Test Used", "p-value", "Effect Size"])
+
+# Save results to CSV
+df_comparisons.to_csv(output_path11, index=False)
