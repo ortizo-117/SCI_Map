@@ -8,19 +8,75 @@ from cliffs_delta import cliffs_delta
 
  
 PyB_path = "/path/to/your/predicted_results.xlsx"  # Path to your predicted brain age results in Excel format
-output_path1 = "/path/to/output/BrainPAD_comparison.png"  # Path where you want to save the plot for BrainPAD across cohorts
-output_path2 = "/path/to/output/Chronological_vs_BrainAge.png"# Path where you want to save the plot for Chronological Age vs Predicted Brain Age (PyBrain)
-output_path3 = "/path/to/output/BrainPAD_vs_Age.png"# Path where you want to save the plot for BrainPAD vs Age
-output_path4 = "/path/to/output/BrainPAD_across_sex.png" # Path where you want to save the results for Group Comparisons
-output_path5 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png" # Path where you want to save the results for Group Comparisons
-output_path6 = "/path/to/output/BrainPAD_across_cohorts.csv" # Path where you want to save the results for Group Comparisons
-output_path7 = "/path/to/output/BrainPAD_across_sex.csv" # Path where you want to save the results for Group Comparisons
+output_path1 = "/path/to/output/summary_statistics.csv" # Path where you want to save the summary statistics
+output_path2 = "/path/to/output/BrainPAD_comparison.png"  # Path where you want to save the plot for BrainPAD across cohorts
+output_path3 = "/path/to/output/Chronological_vs_BrainAge.png"# Path where you want to save the plot for Chronological Age vs Predicted Brain Age (PyBrain)
+output_path4 = "/path/to/output/BrainPAD_vs_Age.png"# Path where you want to save the plot for BrainPAD vs Age
+output_path5 = "/path/to/output/BrainPAD_across_sex.png" # Path where you want to save the results for Group Comparisons
+output_path6 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png" # Path where you want to save the results for Group Comparisons
+output_path7 = "/path/to/output/BrainPAD_across_cohorts.csv" # Path where you want to save the results for Group Comparisons
+output_path8 = "/path/to/output/BrainPAD_across_sex.csv" # Path where you want to save the results for Group Comparisons
 df_pybrain = pd.read_excel(PyB_path)
+# Ensure relevant columns are numeric if they exist
+for col in ["Age", "BrainPAD", "BrainAge"]:
+    if col in df_pybrain.columns:
+        df_pybrain[col] = pd.to_numeric(df_pybrain[col], errors="coerce")
 
+# Define cohorts
+cohort_order = ["control", "SCI_nNP", "SCI_P"]
+
+# Create empty list to store summary data
+summary_results = []
+
+# Loop through each cohort to calculate summary statistics
+for cohort in cohort_order:
+    subset = df_pybrain[df_pybrain["Cohort"] == cohort]
+
+    # Calculate statistics (only if column exists)
+    num_participants = len(subset)
+    mean_age = subset["Age"].mean() if "Age" in subset.columns else np.nan
+    std_age = subset["Age"].std() if "Age" in subset.columns else np.nan
+    mean_brainpad = subset["BrainPAD"].mean() if "BrainPAD" in subset.columns else np.nan
+    std_brainpad = subset["BrainPAD"].std() if "BrainPAD" in subset.columns else np.nan
+    mean_brainage = subset["BrainAge"].mean() if "BrainAge" in subset.columns else np.nan
+    std_brainage = subset["BrainAge"].std() if "BrainAge" in subset.columns else np.nan
+
+    # Gender distribution (only if column exists)
+    num_male = sum(subset["Sex"] == "Male") if "Sex" in subset.columns else np.nan
+    num_female = sum(subset["Sex"] == "Female") if "Sex" in subset.columns else np.nan
+
+    # AIS distribution (only if column exists)
+    ais_distribution = subset["AIS"].value_counts().to_dict() if "AIS" in subset.columns else "Not Available"
+
+    # Additional columns (check if they exist)
+    time_since_sci_mean = subset["Time since SCI (years) "].mean() if "Time since SCI (years) " in subset.columns else np.nan
+    pain_meds_count = subset["pain meds"].value_counts().to_dict() if "pain meds" in subset.columns else "Not Available"
+    pcs_mean = subset["PCS"].mean() if "PCS" in subset.columns else np.nan
+    bdi_mean = subset["BDI"].mean() if "BDI" in subset.columns else np.nan
+
+    # Store results
+    summary_results.append([
+        cohort, num_participants, mean_age, std_age, mean_brainpad, std_brainpad,
+        mean_brainage, std_brainage, num_male, num_female, ais_distribution,
+        time_since_sci_mean, pain_meds_count, pcs_mean, bdi_mean
+    ])
+
+# Convert to DataFrame
+df_summary = pd.DataFrame(summary_results, columns=[
+    "Cohort", "Participants", "Mean Age", "SD Age", "Mean BrainPAD", "SD BrainPAD",
+    "Mean BrainAge", "SD BrainAge", "Num Male", "Num Female", "AIS Distribution",
+    "Mean Time Since SCI", "Pain Meds Distribution", "Mean PCS", "Mean BDI"
+])
+
+# Save summary statistics as CSV
+df_summary.to_csv(output_path1, index=False)
+
+
+###Boxplot for BrainPAD across cohorts 
 # Define cohort colors
 cohort_palette = {
     "control": "#AEC6E8",  # Light Blue
-    "SCI_nNP": "#FFCC99",  # Light Orange
+    "SCI_nNP": "#FFCC99",  # Light Oetange
     "SCI_P": "#99D8A0"     # Light Green
 }
 
@@ -47,7 +103,7 @@ plt.legend(title="Statistics", loc="upper right")
 # Display plot
 plt.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig(output_path1)
+plt.savefig(output_path2)
 
 
 ### Scatter plot: Chronological Age vs. Predicted Brain Age (PyBrain)
@@ -68,7 +124,7 @@ plt.xticks(fontsize=12)
 plt.yticks(fontsize=12)
 plt.legend(title="Cohort", loc="upper left")
 
-plt.savefig(output_path2)
+plt.savefig(output_path3)
 
 
 ###BrainPAD Across Age and different cohorts 
@@ -84,7 +140,7 @@ plt.ylabel("BrainPAD", fontsize=14, fontweight="bold")
 plt.title("BrainPAD vs Age Across Cohorts", fontsize=16, fontweight="bold")
 plt.legend(title="Cohort", loc="upper right")
 plt.grid(alpha=0.3)
-plt.savefig(output_path3)
+plt.savefig(output_path4)
 
 #BrainPAD across sex 
 # Filter Data by Sex
@@ -119,7 +175,7 @@ axes[1].set_xlabel("Cohorts", fontsize=12, fontweight="bold")
 # Adjust layout & save
 plt.suptitle("BrainPAD Comparison by Cohort (Separated by Sex)", fontsize=16, fontweight="bold")
 plt.tight_layout()
-plt.savefig(output_path4)
+plt.savefig(output_path5)
 
 
 #BrainPAD vs Time Since Injury (SCI Particpants)
@@ -186,7 +242,7 @@ plt.legend(title="Cohort", loc="upper right")
 # **Show and Save Plot**
 plt.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig(output_path5)
+plt.savefig(output_path6)
 
 ### Statistical Analysis
 ##BrainPAD across cohorts
@@ -230,7 +286,7 @@ for group1, group2 in combinations(cohort_order, 2):
 df_comparisons = pd.DataFrame(comparison_results, columns=["Group1", "Group2", "Test Used", "p-value", "Effect Size"])
 
 # Save results to a CSV file
-df_comparisons.to_csv(output_path6)
+df_comparisons.to_csv(output_path7)
 
 ### BrainPAD acorss sex 
 # Filter Data by Sex
@@ -282,5 +338,5 @@ df_male_comparisons = pd.DataFrame(male_results, columns=["Sex", "Group1", "Grou
 df_sex_comparisons = pd.concat([df_female_comparisons, df_male_comparisons], ignore_index=True)
 
 # Save Results to a CSV file
-df_sex_comparisons.to_csv(output_path7)
+df_sex_comparisons.to_csv(output_path8)
 
