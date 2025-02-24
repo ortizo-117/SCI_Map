@@ -520,9 +520,11 @@ The visualization script ('Analysis of BrainPAD.py') creates various plots and s
    python Analysis of BrainPAD.py
    ```
 
+
 ### Generated Outputs
 
 #### 1. Summary Statistics
+The following statistics are generated based on what variables are included in your dataset:
 - Participant counts per cohort
 - Age statistics (mean, SD)
 - BrainPAD statistics (mean, SD) 
@@ -531,8 +533,9 @@ The visualization script ('Analysis of BrainPAD.py') creates various plots and s
 - AIS distribution (for SCI cohorts)
 - Time since injury (for SCI cohorts)
 - Pain medication usage
-- PCS and BDI scores
+- PCS and BDI scores 
 
+#### 2. Visualizations
 The script generates five key visualizations:
 
 **a. BrainPAD Distribution**
