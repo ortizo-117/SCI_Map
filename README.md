@@ -496,6 +496,8 @@ If you have trouble accessing these files, please contact:
 - The original PyBrain repository maintainers
 - The SCI_MAP project coordinators
 
+**File Generated:**
+Once you run the predict.py script, you will generate a predicted_results.csv file. 
 
 ### Step 6: Structural Analyses
 
