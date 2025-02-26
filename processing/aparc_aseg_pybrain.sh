@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Default values
-ROOT_DIR="/mnt/c/users/kramerlab/Documents/freesurfer_SCI_extra_subjects"
-OUTPUT_DIR="/mnt/c/users/kramerlab/Documents/freesurfer_SCI_extra_subjects/results_pybrain"
+ROOT_DIR="/mnt/c/users/kramerlab/Documents/freesurfer_SCI"
+OUTPUT_DIR="/mnt/c/users/kramerlab/Documents/freesurfer_SCI/results_pybrain"
 APARC_OPTION="aparc.a2009s"
 
 # Usage function
@@ -32,7 +32,7 @@ mkdir -p "$OUTPUT_DIR"
 
 # Get the list of subject IDs from the derivatives directory
 #SUBJECTS=($(ls -d "$DERIVATIVES_DIR"/Sub_* 2>/dev/null | xargs -n 1 basename))
-SUBJECTS=($(ls -d "$DERIVATIVES_DIR"/Sub_* 2>/dev/null))
+SUBJECTS=($(ls -d "$DERIVATIVES_DIR"/sub-* 2>/dev/null))
 
 # Check if subjects were found
 if [[ ${#SUBJECTS[@]} -eq 0 ]]; then

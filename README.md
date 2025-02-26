@@ -453,6 +453,11 @@ Before running the prediction script, you need to modify the following paths in 
    scaler_path = "/path/to/PyBrainAge-main/software/scaler.pkl"
    ```
 
+ 3. `output_path`: Path to where you want the output file to be saved. Note that we have saved it here as "predicted_results.csv". This naming is so that it works with the next step.
+   ```python
+      output_path = '/path/to/your/results/folder/predicted_results.csv'
+   ```  
+
 **Important Note:** Due to file size limitations, the ExtraTreesModel and scaler files are not directly stored in this repository. To obtain these files:
 
 1. Download them from the original PyBrain repository:
@@ -491,6 +496,9 @@ If you have trouble accessing these files, please contact:
 - The original PyBrain repository maintainers
 - The SCI_MAP project coordinators
 
+
+**File Generated:**
+Once you run the predict.py script, you will generate a predicted_results.csv file. 
 
 ## Support and Contact
 
