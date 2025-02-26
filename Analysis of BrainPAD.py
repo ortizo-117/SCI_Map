@@ -30,7 +30,8 @@ output_path7 = "/path/to/output/BrainPAD_across_cohorts.csv"  # Statistical resu
 output_path8 = "/path/to/output/BrainPAD_across_sex.csv"  # Statistical results for sex-specific analyses
 output_path9 = "/path/to/output/BrainPAD_acorss_AIS.csv" # Statistical results for AIS-specific comparison
 output_path10 = "/path/to/output/Chi2_AIS.csv" # Statistical results for AIS-specific comparison
-output_path11 = "/path/to/output/ChronologicalAge_Comparison.csv"   # Statistical results for chronological age comparison
+output_path11 = "/path/to/output/TimeSinceInjury_Comparison.csv" # Statistical results for Time since Injury comparison
+output_path12 = "/path/to/output/ChronologicalAge_Comparison.csv"   # Statistical results for chronological age comparison
 df_pybrain = pd.read_excel(PyB_path)
 
 # Convert relevant columns to numeric format, handling any errors
@@ -444,11 +445,44 @@ df_chi2_results = pd.DataFrame({
     "Degrees of Freedom": [dof],
     "p-value": [p_value]
 })
-
-# Define output path for saving results
-
 # Save results to CSV
 df_chi2_results.to_csv(output_path10, index=False)
+
+# Define output path for saving results
+###Comparison between Time since Injury
+# Compare SCI_P and SCI_nNP for "Time since SCI (years)"
+df_sci_comparison = df_pybrain[df_pybrain["Cohort"].isin(["SCI_P", "SCI_nNP"])].copy()
+
+# Convert column to numeric and drop NaN values 
+df_sci_comparison["Time since SCI (years) "] = pd.to_numeric(df_sci_comparison["Time since SCI (years) "], errors="coerce")
+df_sci_comparison = df_sci_comparison.dropna(subset=["Time since SCI (years) "])
+
+# Extract values for both groups
+sci_p = df_sci_comparison[df_sci_comparison["Cohort"] == "SCI_P"]["Time since SCI (years) "]
+sci_nnp = df_sci_comparison[df_sci_comparison["Cohort"] == "SCI_nNP"]["Time since SCI (years) "]
+
+# Use previously determined normality test result
+if is_normal:
+    test_stat, p_value = stats.ttest_ind(sci_p, sci_nnp)
+    test_used = f"T-Test (t={test_stat:.2f})"
+    effect_size = cohen_d(sci_p, sci_nnp)
+else:
+    test_stat, p_value = stats.mannwhitneyu(sci_p, sci_nnp)
+    test_used = f"Mann-Whitney U-Test (U={test_stat:.2f})"
+    effect_size, _ = cliffs_delta(sci_p, sci_nnp)
+
+# Store results in a DataFrame
+df_time_comparison = pd.DataFrame({
+    "Test": [test_used],
+    "p-Value": [p_value], 
+    "Effect Size": [effect_size],
+    "n_SCI_P": [len(sci_p)],
+    "n_SCI_nNP": [len(sci_nnp)]
+})
+
+# Save results to CSV
+df_time_comparison.to_csv(output_path11, index=False)
+
 
 # Comparison Chronological Age
 # Function to Calculate Cohen's d
@@ -480,4 +514,4 @@ for group1, group2 in combinations(cohort_order, 2):
 df_comparisons = pd.DataFrame(comparison_results, columns=["Group1", "Group2", "Test Used", "p-value", "Effect Size"])
 
 # Save results to CSV
-df_comparisons.to_csv(output_path11, index=False)
+df_comparisons.to_csv(output_path12, index=False)

@@ -515,7 +515,8 @@ The visualization script ('Analysis of BrainPAD.py') creates various plots and s
    output_path8 = "/path/to/output/BrainPAD_across_sex.csv"  # Statistical results for sex-specific analyses
    output_path9 = "/path/to/output/BrainPAD_acorss_AIS.csv" # Statistical results for AIS-specific comparison
    output_path10 = "/path/to/output/Chi2_AIS.csv" # Statistical results for AIS-specific comparison
-   output_path11 = "/path/to/output/ChronologicalAge_Comparison.csv" # Statistical results for chronological age comparison
+   output_path11 = "/path/to/output/TimeSinceInjury_Comparison.csv" # Statistical results for Time since Injury comparison
+   output_path12 = "/path/to/output/ChronologicalAge_Comparison.csv" # Statistical results for chronological age comparison
    ```
 
 2. Run the script:
@@ -588,8 +589,9 @@ The script performs comprehensive statistical testing:
 - Effect sizes calculated for each comparison
 - Sample sizes included
 
-*AIS Analysis:*
-- Chi-square test for AIS distribution between cohorts
+*Injury Analysis:*
+- Chi-square test for AIS distribution between SCI cohorts
+- Comparison of Time since Injury between SCI cohorts
 - Pairwise comparisons across AIS grades including controls
 
 ### Output Files
@@ -604,7 +606,8 @@ The Analysis of BrainPAD.py script generates eleven files:
 8. BrainPAD_across_sex.csv: Statistical results for sex-specific cohort comparisons
 9. BrainPAD_acorss_AIS.csv: Statistical results for AIS-specific comparisons
 10. Chi2_AIS.csv: Chi-square test results for AIS distribution
-11. ChronologicalAge_Comparison.csv: Statistical results for age comparisons
+11. TimeSinceInjury_Comparison.csv: Statistical results for Time since Injury comparison
+12. ChronologicalAge_Comparison.csv: Statistical results for age comparisons
 
 ## Support and Contact
 
