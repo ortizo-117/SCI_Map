@@ -494,7 +494,7 @@ If you have trouble accessing these files, please contact:
 
 
 ## Merging the data with the clinical data
-## Adding Clinical Data to the Analysis Template
+
 
 To merge your brain age predictions with clinical data, use the provided template file 'Template_Analysis.xlsx'. This template helps organize the data for the analysis.
 
