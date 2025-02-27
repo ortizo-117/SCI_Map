@@ -493,6 +493,42 @@ If you have trouble accessing these files, please contact:
 - The SCI_MAP project coordinators
 
 
+## Merging the data with the clinical data
+## Adding Clinical Data to the Analysis Template
+
+To merge your brain age predictions with clinical data, use the provided template file 'Template_Analysis.xlsx'. This template helps organize the data for the analysis.
+
+### Template Structure
+The 'Template_Analysis.xlsx' file contains the following columns:
+
+1. **Required Fields:**
+   - Subject_ID: Unique identifier for each participant (e.g. "190")
+   - Age: Chronological age in years
+   - Sex: Male/Female
+   - Cohort: control/SCI_nNP/SCI_P (Control, SCI without pain, SCI with pain)
+   - BrainAge: Predicted brain age from PyBrain (automatically calculated)
+   - BrainPAD: Brain-Predicted Age Difference (automatically calculated)
+
+2. **SCI-Specific Fields:**
+   - AIS: ASIA Impairment Scale grade (A/B/C/D)
+   - Time since SCI (years): Duration since injury (Numeric)
+
+
+### Steps to Merge Data
+
+1. Open the Template_Analysis.xlsx file
+2. Copy your brain age predictions from PyBrain's output
+3. Add corresponding clinical data for each participant
+4. Ensure consistent formatting:
+   ```
+   - Use consistent Subject_ID format
+   - Enter numerical values without units
+   - Use standardized text for categorical variables
+   ```
+
+5. Save the completed template in your analysis directory
+
+**Note:** The Analysis of BrainPAD.py script expects data in this template format. Deviating from the template structure may cause analysis errors.
 
 ## Analyzing and Visualizing Brain Age Results
 
@@ -519,9 +555,20 @@ The visualization script ('Analysis of BrainPAD.py') creates various plots and s
    output_path12 = "/path/to/output/ChronologicalAge_Comparison.csv" # Statistical results for chronological age comparison
    ```
 
-2. Run the script:
+2. Run the script using the terminal/command prompt:
+   
+   Using Terminal/Command Prompt:
    ```bash
-   python Analysis of BrainPAD.py
+   python "Analysis of BrainPAD.py"
+   # Note: Use quotes around filename since it contains spaces
+   ```
+
+   Or using PyCharm IDE:
+   - Open Analysis of BrainPAD.py in PyCharm
+   - Click the green "Run" button or press Shift+F10
+   - The script will execute in PyCharm's integrated terminal
+
+   Note: This script was originally developed and tested in PyCharm IDE, so running it through PyCharm is recommended to ensure consistent behavior.
    ```
 
 ### Generated Outputs
@@ -535,8 +582,7 @@ The following statistics are generated based on what variables are included in y
 - Gender distribution
 - AIS distribution (for SCI cohorts)
 - Time since injury (for SCI cohorts)
-- Pain medication usage
-- PCS and BDI scores 
+
 
 #### 2. Visualizations
 The script generates five key visualizations:

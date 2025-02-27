@@ -67,24 +67,21 @@ for cohort in cohort_order:
     ais_distribution = subset["AIS"].value_counts().to_dict() if "AIS" in subset.columns else "Not Available"
 
     # Calculate additional clinical measures
-    valid_time_since_sci = subset["Time since SCI (years) "].notna().sum() if "Time since SCI (years) " in subset.columns else 0
-    time_since_sci_mean = subset["Time since SCI (years) "].mean() if valid_time_since_sci > 2 else "Not Available"
-    pain_meds_count = subset["pain meds"].value_counts().to_dict() if "pain meds" in subset.columns else "Not Available"
-    pcs_mean = subset["PCS"].mean() if "PCS" in subset.columns else np.nan
-    bdi_mean = subset["BDI"].mean() if "BDI" in subset.columns else np.nan
-
+    valid_time_since_sci = subset["Time since SCI (years)"].notna().sum() if "Time since SCI (years)" in subset.columns else 0
+    time_since_sci_mean = subset["Time since SCI (years)"].mean() if valid_time_since_sci > 2 else "Not Available"
+    
     # Store all calculated statistics for this cohort
     summary_results.append([
         cohort, num_participants, mean_age, std_age, mean_brainpad, std_brainpad,
         mean_brainage, std_brainage, num_male, num_female, ais_distribution,
-        time_since_sci_mean, pain_meds_count, pcs_mean, bdi_mean
+        time_since_sci_mean
     ])
 
 # Create summary DataFrame with all statistics
 df_summary = pd.DataFrame(summary_results, columns=[
     "Cohort", "Participants", "Mean Age", "SD Age", "Mean BrainPAD", "SD BrainPAD",
     "Mean BrainAge", "SD BrainAge", "Num Male", "Num Female", "AIS Distribution",
-    "Mean Time Since SCI", "Pain Meds Distribution", "Mean PCS", "Mean BDI"
+    "Mean Time Since SCI", 
 ])
 
 # Save summary statistics to CSV file
@@ -454,12 +451,12 @@ df_chi2_results.to_csv(output_path10, index=False)
 df_sci_comparison = df_pybrain[df_pybrain["Cohort"].isin(["SCI_P", "SCI_nNP"])].copy()
 
 # Convert column to numeric and drop NaN values 
-df_sci_comparison["Time since SCI (years) "] = pd.to_numeric(df_sci_comparison["Time since SCI (years) "], errors="coerce")
-df_sci_comparison = df_sci_comparison.dropna(subset=["Time since SCI (years) "])
+df_sci_comparison["Time since SCI (years)"] = pd.to_numeric(df_sci_comparison["Time since SCI (years)"], errors="coerce")
+df_sci_comparison = df_sci_comparison.dropna(subset=["Time since SCI (years)"])
 
 # Extract values for both groups
-sci_p = df_sci_comparison[df_sci_comparison["Cohort"] == "SCI_P"]["Time since SCI (years) "]
-sci_nnp = df_sci_comparison[df_sci_comparison["Cohort"] == "SCI_nNP"]["Time since SCI (years) "]
+sci_p = df_sci_comparison[df_sci_comparison["Cohort"] == "SCI_P"]["Time since SCI (years)"]
+sci_nnp = df_sci_comparison[df_sci_comparison["Cohort"] == "SCI_nNP"]["Time since SCI (years)"]
 
 # Use previously determined normality test result
 if is_normal:
