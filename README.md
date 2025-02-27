@@ -506,8 +506,8 @@ The 'Template_Analysis.xlsx' file contains the following columns:
    - Age: Chronological age in years
    - Sex: Male/Female
    - Cohort: control/SCI_nNP/SCI_P (Control, SCI without pain, SCI with pain)
-   - BrainAge: Predicted brain age from PyBrain (automatically calculated)
-   - BrainPAD: Brain-Predicted Age Difference (automatically calculated)
+   - BrainAge: Predicted brain age from PyBrain (from predicted_results.csv)
+   - BrainPAD: Brain-Predicted Age Difference (from predicted_results.csv)
 
 2. **SCI-Specific Fields:**
    - AIS: ASIA Impairment Scale grade (A/B/C/D)
