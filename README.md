@@ -500,37 +500,6 @@ If you have trouble accessing these files, please contact:
 **File Generated:**
 Once you run the predict.py script, you will generate a predicted_results.csv file. 
 
-### Step 6: Structural Analyses
-
-Following all previous steps and compiling all the data, one last R script will be used to analyze structural differences between individuals with spinal cord injury (with and without neuropathic pain) and healthy individuals using the freesurfer recon_all outputs.
-The full script can be found under the structural-analysis tab and the condensed raw code can be found in the file named `FreesurferAnalysisScriptCondensed`. 
-
-The RMarkdown file contains a much more detailed breakdown of the pipeline if you are unfamiliar with this language and interface, and can be referenced for the full analysis.
-
-**Prerequisites**
-
-1. Working version of R and RStudio (same as above), with the following packages
-   - tidyverse
-   - data.table
-   - multcomp
-   - effsize
-   - writexl
-   - ggpubr
-2. Freesurfer outputs compiled
-   - Cortical measurments taken from the Destrieux atlas (same as before)
-   - Subcortical measurements from the aseg file (same as before)
-   - Cortical thickness
-   - Intracranial volume
-
-**Outputs**   
-
-Following analysis you should end up with 10 .csv files which will be sent back to us for meta-analysis.
-
-1. 4 .csv files comparing strucutral measurements between individuals with spinal cord injury (with and without neuropahtic pain) and healthy individuals.
-2. 4 .csv files comparing subcortical volumes between individuals with spinal cord injury (with and without neuropathic pain) and healthy individuals.
-3. 1 .csv summary file containing information on cortical thickness.
-4. 1 .csv summary file containing information on intracranial volume.
-
 ## Merging the data with the clinical data
 
 
@@ -692,6 +661,100 @@ The Analysis of BrainPAD.py script generates eleven files:
 10. Chi2_AIS.csv: Chi-square test results for AIS distribution
 11. TimeSinceInjury_Comparison.csv: Statistical results for Time since Injury comparison
 12. ChronologicalAge_Comparison.csv: Statistical results for age comparisons
+
+### Step 6: Structural Analyses
+
+We will be using some new scripts to compile the data into certain formats for specific statistical analyses in R and RStudio. The scripts will compile data about the various cortical measurements, intracranial volume, subcortical volumes, and cortical thickness. 
+There are four different scripts for each statistic, and they can all be found in the structural-analysis folder in the main branch, in the sub folder scripts. Some lines will need to be changed to fit your machine. 
+
+**Potential issues and how to fix them**
+#### 1: Giving scripts permission to run
+
+If scripts are not running or do not have the permissions to run, you may have to make the script executable using the following code, where filename refers to the script name e.g. extract_cortical.sh
+```bash
+chmod +x filename
+```
+#### 2: Return character, command not found
+
+There is a chance that when you try to run any of the shell scripts provided, that you run into an error that looks something like this ... 
+`Bash: $:then \r: command not found`
+Which can be fixed using the following line of code where filename refers to the script name e.g. extract_cortical.sh
+```bash
+sed -i 's/\r$// filename
+```
+**extract_cortical.sh**
+This script extracts all cortical measures and measurements from your freesurfer output, assuming all your files and data are in BIDS format. 
+You will have to change line 4 to the path to your BIDS directory, the folder containing your code, rawdata, and derivatives. 
+```bash
+BIDS_DIR="/path/to/BIDS/directory"
+```
+Depending on how your BIDS format looks like, you may need to change line 10. This assumes your folders containing your data in rawdata or derivatives is labeled sub-xx (e.g. sub-01), but this may need to be changed if you're using underscores instead, or a different header. 
+```bash
+subjects=$(ls ${SUBJECTS_DIR} | grep "sub-")
+```
+Run script using `bash extract_cortical.sh`. This will produced a file called `cortical_stats_long.csv` at the bottom of your derivatives folder. 
+
+**extract_cortical_thickness.sh**
+This script extract the average cortical thickness of your subjects, from the left and right hemisphere separately.
+You will need to change line 4 again, this time directly to the derivatives folder in your BIDS folder.
+```bash
+BIDS_DIR="/path/to/derivatives"
+```
+Again, depending on your BIDS format, you may need to change line 11 to fit the naming of your subject folders.
+```bash
+for subject_dir in "$DERIVATIVES_PATH"/sub-*; do
+```
+Run script using `bash extract_cortical_thickness.sh`. This will produce a file caled `cortical_thickness.csv` in your code folder. 
+
+**extract_ICV.sh**
+This script compiles the total intracranial volume of each subject. You will need to change line 4 to the derivatives folder in your BIDS folder.
+```bash
+BIDS_DIR="/path/to/derivatives"
+```
+Again, depending on your BIDS format, you may need to change line 13 to fit the naming of your subject folders.
+```bash
+for SUBJECT_DIR in "$BIDS_DIR"/sub-*/; do
+```
+Run script using `bash extract_ICV.sh`. This will create a file called `ICV_data.csv` in your code folder.
+
+**extract_subcortical.sh**
+This script compiles the subcortical structure volumes. Line 4 will need to be changed to your main BIDS folder.
+```bash
+BIDS_DIR="/path/to/directory"
+```
+Again, depending on your BIDS format, you may need to change line 10 to fit the naming of your subject folders.
+```bash
+subjects=$(ls ${SUBJECTS_DIR} | grep "sub-")
+```
+Run script using `bash extract_subcortical.sh`. This will create a file named `subcortical_volumes.csv` in your derivatives folder. 
+
+**R Analysis**
+
+Following compiling all the data necessary for analysis, we can then conduct an R analysis for all data. This will compare the regions using a t-test, and calculate the effect size along with other statistical measures. You will need the following packages listed below, as well as the following files you should have compiled above. 
+
+1. Working version of R and RStudio (same as above), with the following packages
+   - tidyverse
+   - data.table
+   - multcomp
+   - effsize
+   - writexl
+   - ggpubr
+2. Freesurfer outputs compiled
+   - Cortical measurments taken from the Destrieux atlas (same as before)
+   - Subcortical measurements from the aseg file (same as before)
+   - Cortical thickness
+   - Intracranial volume
+
+Once everything is order, you may refer to the RScript for further details on how to run the analysis. The file name `FreesurferAnalysisScriptCondensed.R` is a much more shortened version of the analysis, and assumes the user has knowledge in R and RStudio. Most of the code is there, but bits will have to be changed to get the proper output according to your machine. The RMarkdown file `FreesurferAnalysisScript.Rmd` contains a full tutorial on how to get this to run, including screenshots and more tables, if you are unfamiliar with R/RStudio, please refer to that if you get stuck 
+
+**Outputs**   
+
+Following analysis you should end up with 10 .csv files which will be sent back to us for meta-analysis.
+
+1. 4 .csv files comparing strucutral measurements between individuals with spinal cord injury (with and without neuropahtic pain) and healthy individuals.
+2. 4 .csv files comparing subcortical volumes between individuals with spinal cord injury (with and without neuropathic pain) and healthy individuals.
+3. 1 .csv summary file containing information on cortical thickness.
+4. 1 .csv summary file containing information on intracranial volume.
 
 ## Support and Contact
 
