@@ -43,14 +43,21 @@ metadata <- read.csv(
   sep=","
 )
 
-#Merge your metadata to your data
+#Merge your metadata to your data, code refers to your cohort labels 
 SCI_Data <- SCI_Data %>%
   left_join(dplyr::select(metadata, ID, code, sex, age), by = c("Subject" = "ID"))
+
+# Converting to wide format
+SCI_Data_wide <- SCI_Data %>%
+  mutate(hemisphere_region_measure = paste(Hemisphere, Region, Measure, sep = "_")) %>%
+  dplyr::select(-Region, -Hemisphere, -Measure) %>%
+  pivot_wider(names_from = hemisphere_region_measure, values_from = Value)
+
 
 #Subset your master dataframe to smaller ones for individual comparisons
 
 #PvH indicates people with SCI and neuropathic pain vs healthy individuals
-SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","SCI_H"), ])
+SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","SCI_H"), ]) # To do oscar - change SCI_H to control 
 
 #nNPvH indicates people with SCI but no neuroapthic pain vs healhty individuals
 SCI_nNPvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","SCI_H"), ])

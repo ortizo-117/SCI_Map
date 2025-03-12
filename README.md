@@ -18,16 +18,20 @@ To participate in this project, you need:
    - 3D T1-weighted MRI scans
    - Data must be organized in BIDS format
    - Both SCI and control cohort scans
+   - Alternatively, you can also have the recon-all outputs from FreeSurfer
 
 2. **Software Requirements**
-   - FreeSurfer (installed and operational)
+   - WSL installation (Here tested on Ubuntu 22.04.5 LTS )
+   - FreeSurfer (installed and operational, here tested on 7.4.1)
    - Python dependencies (listed in requirements.txt)
+   - Matlab executable from WSL
+   - RStudio
 
 3. **Metadata Requirements**
    - Subject ID
    - Age
    - Cohort designation (SCI or Control)
-   - Neuropathic pain status for SCI participants
+   - Neuropathic pain status for SCI participants (if pain analysis is to be done)
 
 ## Data Structure
 
@@ -500,7 +504,7 @@ If you have trouble accessing these files, please contact:
 **File Generated:**
 Once you run the predict.py script, you will generate a predicted_results.csv file. 
 
-## Merging the data with the clinical data
+### Step 6: Merging the data with the clinical data
 
 
 To merge your brain age predictions with clinical data, use the provided template file 'Template_Analysis.xlsx'. This template helps organize the data for the analysis.
@@ -535,18 +539,18 @@ The 'Template_Analysis.xlsx' file contains the following columns:
 
 5. Save the completed template in your analysis directory
 
-**Note:** The Analysis of BrainPAD.py script expects data in this template format. Deviating from the template structure may cause analysis errors.
+**Note:** The brainpadstats.py script expects data in this template format. Deviating from the template structure may cause analysis errors.
 
-## Analyzing and Visualizing Brain Age Results
+### Step 7: Analyzing and Visualizing Brain Age Results
 
 This section explains how to analyze and visualize brain age prediction results. The provided scripts generate statistical summaries and visualizations to help understand brain age differences between cohorts.
 
-The visualization script ('Analysis of BrainPAD.py') creates various plots and statistical comparisons to help interpret your results.
+The visualization script ('brainpadstats.py') creates various plots and statistical comparisons to help interpret your results.
 
 ### Setup and Usage
 1. Configure the file paths in the script:
    ```python
-   # Update these paths in Analysis of BrainPAD.py:
+   # Update these paths in brainpadstats.py:
    PyB_path = "/path/to/your/predicted_results.xlsx"  # Excel file containing brain age predictions
    output_path1 = "/path/to/output/summary_statistics.csv"  # CSV file for summary statistics
    output_path2 = "/path/to/output/BrainPAD_comparison.png"  # Plot comparing BrainPAD across cohorts
@@ -566,12 +570,12 @@ The visualization script ('Analysis of BrainPAD.py') creates various plots and s
    
    Using Terminal/Command Prompt:
    ```bash
-   python "Analysis of BrainPAD.py"
+   python "brainpadstats.py"
    # Note: Use quotes around filename since it contains spaces
    ```
 
    Or using PyCharm IDE:
-   - Open Analysis of BrainPAD.py in PyCharm
+   - Open brainpadstats.py in PyCharm
    - Click the green "Run" button or press Shift+F10
    - The script will execute in PyCharm's integrated terminal
 
@@ -648,7 +652,7 @@ The script performs comprehensive statistical testing:
 - Pairwise comparisons across AIS grades including controls
 
 ### Output Files
-The Analysis of BrainPAD.py script generates eleven files:
+The brainpadstats.py script generates eleven files:
 1. summary_statistics.csv: Detailed summary statistics for each cohort
 2. BrainPAD_comparison.png: Boxplot comparing BrainPAD across cohorts
 3. Chronological_vs_BrainAge.png: Scatter plot of chronological vs predicted brain age
@@ -662,7 +666,7 @@ The Analysis of BrainPAD.py script generates eleven files:
 11. TimeSinceInjury_Comparison.csv: Statistical results for Time since Injury comparison
 12. ChronologicalAge_Comparison.csv: Statistical results for age comparisons
 
-### Step 6: Structural Analyses
+### Step 8: Structural Analyses
 
 We will be using some new scripts to compile the data into certain formats for specific statistical analyses in R and RStudio. The scripts will compile data about the various cortical measurements, intracranial volume, subcortical volumes, and cortical thickness. 
 There are four different scripts for each statistic, and they can all be found in the structural-analysis folder in the main branch, in the sub folder scripts. Some lines will need to be changed to fit your machine. 

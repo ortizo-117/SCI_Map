@@ -3,16 +3,7 @@ import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
 import pandas as pd
-import pandas as pd
 from nilearn import plotting, surface
-
-
-import os
-
-
-
-
-
 
 
 
@@ -75,38 +66,73 @@ lh_data[np.isnan(lh_data)] = 0
 rh_data[np.isnan(rh_data)] = 0
 
 # === Plot Brain Surface Maps Using plot_surf() ===
-fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
 # Define the color limits (adjust these values as needed)
 vmin = -0.8  # Minimum value in color scale
 vmax = 0.8   # Maximum value in color scale
 
-# Plot Left Hemisphere
-plotting.plot_surf(
-    lh_inflated,
-    surf_map=lh_data,
-    bg_map=lh_sulc,
-    hemi="left",
-    view="lateral",
-    cmap="coolwarm",
-    colorbar=True,
-    title="Left Hemisphere",
-    vmin=vmin,
-    vmax=vmax
+# let's create a figure with all the views for both hemispheres
+views = [
+    "lateral",
+    "anterior",
+    "posterior",
+]
+hemispheres = [
+    "left",
+    "right",
+]
+
+
+
+fig, axes = plt.subplots(
+    nrows=len(views),
+    ncols=len(hemispheres),
+    subplot_kw={"projection": "3d"},
+    figsize=(4 * len(hemispheres), 4),
 )
 
-# Plot Right Hemisphere
-plotting.plot_surf(
-    rh_inflated,
-    surf_map=rh_data,
-    bg_map=rh_sulc,
-    hemi="right",
-    view="lateral",
-    cmap="coolwarm",
-    colorbar=True,
-    title="Right Hemisphere",
-    vmin=vmin,
-    vmax=vmax
-)
+for view, ax_row in zip(views, axes):
+    for ax, hemi in zip(ax_row, hemispheres):
+        if hemi == "left":
+            plotting.plot_surf(
+                lh_inflated,
+                surf_map=lh_data,
+                bg_map=lh_sulc,
+                hemi="left",
+                view=view,
+                figure=fig,
+                axes=ax,
+                title=f"Cohen's D - {hemi} - {view}",
+                cmap="coolwarm",
+                colorbar=True,
+                vmin=vmin,
+                vmax=vmax
+            )
+        else:
+            plotting.plot_surf(
+                rh_inflated,
+                surf_map=rh_data,
+                bg_map=rh_sulc,
+                hemi="right",
+                view=view,
+                figure=fig,
+                axes=ax,
+                title=f"Cohen's D - {hemi} - {view}",
+                cmap="coolwarm",
+                colorbar=True,
+                vmin=vmin,
+                vmax=vmax
+            )
+fig.set_size_inches(6, 9)
 
-plt.show()
+plotting.show()
+
+
+
+
+
+
+
+
+
+

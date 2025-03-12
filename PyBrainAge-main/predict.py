@@ -14,7 +14,6 @@ from scipy.stats import pearsonr
 
 age_data_path = r'C:\Users\kramerlab\Documents\brain_age_data\subject_features.csv'
 
-
 #model_path = get_file_path("Enter the path for the 'ExtraTreesModel' file: ")
 model_path = r'C:\Users\kramerlab\Documents\brain_age_pybrain\PyBrainAge\software\ExtraTreesModel'
 
