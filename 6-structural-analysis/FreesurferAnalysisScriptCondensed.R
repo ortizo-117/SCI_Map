@@ -53,19 +53,17 @@ SCI_Data_wide <- SCI_Data %>%
   dplyr::select(-Region, -Hemisphere, -Measure) %>%
   pivot_wider(names_from = hemisphere_region_measure, values_from = Value)
 
-
 #Subset your master dataframe to smaller ones for individual comparisons
+#PvH indicates people with SCI and neuropathic pain vs control
+SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","control"), ]) 
 
-#PvH indicates people with SCI and neuropathic pain vs healthy individuals
-SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","SCI_H"), ]) # To do oscar - change SCI_H to control 
-
-#nNPvH indicates people with SCI but no neuroapthic pain vs healhty individuals
-SCI_nNPvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","SCI_H"), ])
+#nNPvH indicates people with SCI but no neuroapthic pain vs control
+SCI_nNPvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","control"), ])
 
 #nNPvP indicates people with SCI but no neuropathic pain vs people with SCI and neuropathic pain
 SCI_nNPvP <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","SCI_P"), ])
 
-#IvH indicates all people with SCI vs healthy individuals
+#IvH indicates all people with SCI vs control
 SCI_IvH <- as.data.frame(SCI_Data_wide %>%
                            mutate(code = case_when(
                              code %in% c("SCI_P", "SCI_nNP") ~"SCI",
@@ -188,9 +186,9 @@ subcortical_volumes <- cbind(subcortical_volumes[ , 1, drop = F], metadata[c("co
 colnames(subcortical_volumes)[1] <- "SubjectID"
 
 #Subset data frames for specific analyses
-SUB_PvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_P","SCI_H"), ])
+SUB_PvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_P","control"), ])
 
-SUB_nNPvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_nNP", "SCI_H"), ])
+SUB_nNPvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_nNP", "control"), ])
 
 SUB_nNPvP <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_nNP", "SCI_P"), ])
 
@@ -213,7 +211,7 @@ SUB_PvH_results <- lapply(colnames(SUB_PvH)[5:ncol(SUB_PvH)],
   d_value <- d_result$estimate
   
   n1 <- sum(SUB_PvH$code == "SCI_P")
-  n2 <- sum(SUB_PvH$code == "SCI_H")
+  n2 <- sum(SUB_PvH$code == "control")
   
   se_d <- sqrt((n1 + n2) / (n1 * n2) + (d_value^2) / (2 * (n1 + n2)))
   ci_lower <- d_value - 1.96 * se_d
@@ -224,7 +222,7 @@ SUB_PvH_results <- lapply(colnames(SUB_PvH)[5:ncol(SUB_PvH)],
     p_value = t_test$p.value,
     Mean_Group1 = mean(SUB_PvH[SUB_PvH$code == "SCI_P", 
                                region], na.rm = TRUE),
-    Mean_Group2 = mean(SUB_PvH[SUB_PvH$code == "SCI_H", 
+    Mean_Group2 = mean(SUB_PvH[SUB_PvH$code == "control", 
                                region], na.rm = TRUE),
     t_statistic = t_test$statistic,
     Cohen_d = d_value,

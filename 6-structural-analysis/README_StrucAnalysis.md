@@ -325,7 +325,7 @@ labels but please keep track of them!
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Healthy controls</td>
-<td style="text-align: left;">SCI_H</td>
+<td style="text-align: left;">control</td>
 <td style="text-align: left;">Individuals without SCI</td>
 </tr>
 <tr class="even">
@@ -517,9 +517,9 @@ their respective analysis. This will subset our master data frame
 `SCI_Data_wide` into four smaller datasheets containing only our
 subjects of interest.
 
-    SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","SCI_H"), ])
+    SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","control"), ])
 
-    SCI_nNPvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","SCI_H"), ])
+    SCI_nNPvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","control"), ])
 
     SCI_nNPvP <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","SCI_P"), ])
 
@@ -559,9 +559,9 @@ of code, I have also fully written out all analyses.
       d_value <- d_result$estimate
       
       #Finding the total number of individuals in each group. 
-      #Group refers to the code from the cohort labeling such as, SCI_H, SCI_P and SCI_nNP. 
+      #Group refers to the code from the cohort labeling such as, control, SCI_P and SCI_nNP. 
       #Please follow the example when labeling the groups. The letter before v is group 1. 
-      #e.g. SCI_PvH -> group 1 = SCI_P, group 2 = SCI_H.    
+      #e.g. SCI_PvH -> group 1 = SCI_P, group 2 = control.    
       n1 <- sum(*dataframe*$code == "*group1*")
       n2 <- sum(*dataframe*$code == "*group2*")
       
@@ -636,7 +636,7 @@ analysis.</td>
 <tr class="even">
 <td style="text-align: left;">group2</td>
 <td style="text-align: left;">The second group after the versus</td>
-<td style="text-align: left;">SCI_PvH, group2 = SCI_H</td>
+<td style="text-align: left;">SCI_PvH, group2 = control</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">summary</td>
@@ -665,7 +665,7 @@ to people without spinal cord injury.
       d_value <- d_result$estimate
           
       n1 <- sum(SCI_PvH$code == "SCI_P")
-      n2 <- sum(SCI_PvH$code == "SCI_H")
+      n2 <- sum(SCI_PvH$code == "control")
       
       se_d <- sqrt((n1 + n2) / (n1 * n2) + (d_value^2) / (2 * (n1 + n2)))
       ci_lower <- d_value - 1.96 * se_d
@@ -676,7 +676,7 @@ to people without spinal cord injury.
         p_value = t_test$p.value,
         Mean_Group1 = mean(SCI_PvH[SCI_PvH$code == "SCI_P", 
                                             region], na.rm = TRUE),
-        Mean_Group2 = mean(SCI_PvH[SCI_PvH$code == "SCI_H", 
+        Mean_Group2 = mean(SCI_PvH[SCI_PvH$code == "control", 
                                             region], na.rm = TRUE),
         t_statistic = t_test$statistic,
         Cohen_d = d_value,
@@ -707,7 +707,7 @@ neuropathic pain, to controls
       d_value <- d_result$estimate
           
       n1 <- sum(SCI_nNPvH$code == "SCI_nNP")
-      n2 <- sum(SCI_nNPvH$code == "SCI_H")
+      n2 <- sum(SCI_nNPvH$code == "control")
       
       se_d <- sqrt((n1 + n2) / (n1 * n2) + (d_value^2) / (2 * (n1 + n2)))
       ci_lower <- d_value - 1.96 * se_d
@@ -718,7 +718,7 @@ neuropathic pain, to controls
         p_value = t_test$p.value,
         Mean_Group1 = mean(SCI_nNPvH[SCI_nNPvH$code == "SCI_nNP", 
                                             region], na.rm = TRUE),
-        Mean_Group2 = mean(SCI_nNPvH[SCI_nNPvH$code == "SCI_H", 
+        Mean_Group2 = mean(SCI_nNPvH[SCI_nNPvH$code == "control", 
                                             region], na.rm = TRUE),
         t_statistic = t_test$statistic,
         Cohen_d = d_value,
@@ -790,7 +790,7 @@ and without neuropathic pain) to individuals without spinal cord injury.
       d_value <- d_result$estimate
           
       n1 <- sum(SCI_IvH$code == "SCI")
-      n2 <- sum(SCI_IvH$code == "SCI_H")
+      n2 <- sum(SCI_IvH$code == "control")
       
       se_d <- sqrt((n1 + n2) / (n1 * n2) + (d_value^2) / (2 * (n1 + n2)))
       ci_lower <- d_value - 1.96 * se_d
@@ -801,7 +801,7 @@ and without neuropathic pain) to individuals without spinal cord injury.
         p_value = t_test$p.value,
         Mean_Group1 = mean(SCI_IvH[SCI_IvH$code == "SCI", 
                                             region], na.rm = TRUE),
-        Mean_Group2 = mean(SCI_IvH[SCI_IvH$code == "SCI_H", 
+        Mean_Group2 = mean(SCI_IvH[SCI_IvH$code == "control", 
                                             region], na.rm = TRUE),
         t_statistic = t_test$statistic,
         Cohen_d = d_value,
@@ -856,9 +856,9 @@ will remain the same (PvH, nNPvH, etc. for the comparisons), but the
 first three letters will change to SUB to indicate we are doing a
 subcortical analysis.
 
-    SUB_PvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_P","SCI_H"), ])
+    SUB_PvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_P","control"), ])
 
-    SUB_nNPvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_nNP", "SCI_H"), ])
+    SUB_nNPvH <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_nNP", "control"), ])
 
     SUB_nNPvP <- data.frame(subcortical_volumes[subcortical_volumes$code %in% c("SCI_nNP", "SCI_P"), ])
 
@@ -887,7 +887,7 @@ controls.
       d_value <- d_result$estimate
           
       n1 <- sum(SUB_PvH$code == "SCI_P")
-      n2 <- sum(SUB_PvH$code == "SCI_H")
+      n2 <- sum(SUB_PvH$code == "control")
       
       se_d <- sqrt((n1 + n2) / (n1 * n2) + (d_value^2) / (2 * (n1 + n2)))
       ci_lower <- d_value - 1.96 * se_d
@@ -898,7 +898,7 @@ controls.
         p_value = t_test$p.value,
         Mean_Group1 = mean(SUB_PvH[SUB_PvH$code == "SCI_P", 
                                             region], na.rm = TRUE),
-        Mean_Group2 = mean(SUB_PvH[SUB_PvH$code == "SCI_H", 
+        Mean_Group2 = mean(SUB_PvH[SUB_PvH$code == "control", 
                                             region], na.rm = TRUE),
         t_statistic = t_test$statistic,
         Cohen_d = d_value,
@@ -929,7 +929,7 @@ neuropathic pain, to controls.
       d_value <- d_result$estimate
           
       n1 <- sum(SUB_nNPvH$code == "SCI_nNP")
-      n2 <- sum(SUB_nNPvH$code == "SCI_H")
+      n2 <- sum(SUB_nNPvH$code == "control")
       
       se_d <- sqrt((n1 + n2) / (n1 * n2) + (d_value^2) / (2 * (n1 + n2)))
       ci_lower <- d_value - 1.96 * se_d
@@ -940,7 +940,7 @@ neuropathic pain, to controls.
         p_value = t_test$p.value,
         Mean_Group1 = mean(SUB_nNPvH[SUB_nNPvH$code == "SCI_nNP", 
                                             region], na.rm = TRUE),
-        Mean_Group2 = mean(SUB_nNPvH[SUB_nNPvH$code == "SCI_H", 
+        Mean_Group2 = mean(SUB_nNPvH[SUB_nNPvH$code == "control", 
                                             region], na.rm = TRUE),
         t_statistic = t_test$statistic,
         Cohen_d = d_value,
@@ -1012,7 +1012,7 @@ controls.
       d_value <- d_result$estimate
           
       n1 <- sum(SUB_IvH$code == "SCI")
-      n2 <- sum(SUB_IvH$code == "SCI_H")
+      n2 <- sum(SUB_IvH$code == "control")
       
       se_d <- sqrt((n1 + n2) / (n1 * n2) + (d_value^2) / (2 * (n1 + n2)))
       ci_lower <- d_value - 1.96 * se_d
@@ -1023,7 +1023,7 @@ controls.
         p_value = t_test$p.value,
         Mean_Group1 = mean(SUB_IvH[SUB_IvH$code == "SCI", 
                                             region], na.rm = TRUE),
-        Mean_Group2 = mean(SUB_IvH[SUB_IvH$code == "SCI_H", 
+        Mean_Group2 = mean(SUB_IvH[SUB_IvH$code == "control", 
                                             region], na.rm = TRUE),
         t_statistic = t_test$statistic,
         Cohen_d = d_value,
