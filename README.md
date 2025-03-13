@@ -1,13 +1,21 @@
 # SCI MAP
 ## Project Description
 
-SCI_MAP is designed to analyze structural brain differences between individuals with spinal cord injury and healthy age-matched controls. The project has two main objectives:
+The SCI_MAP project is designed to analyze structural brain differences between individuals with spinal cord injury (SCI) and healthy age-matched controls. In SCI, alterations in brain structure and function occur as a direct effect of nerve damage, through secondary mechanisms, and due to long-term consequences such as paralysis and neuropathic pain. Structural brain maturation in humans is characterized by region-specific, non-linear patterns of progressive or regressive processes, such as gray matter atrophy.
 
-1. Compare structural brain characteristics between SCI patients and healthy controls
-2. Investigate structural brain changes in SCI patients who develop neuropathic pain
+The brain age gap estimation (BrainAGE) method utilizes structural MRI (T1-weighted MR) data to directly quantify the acceleration or deceleration of individual brain aging. It is computed as the difference between the apparent age of an individual's brain and their chronological age. Inthis project, the apparent brain age is determined using a normative model trained on 29,175 scans, primarily from the UK Biobank dataset, covering a wide age range from 2 to 100 years.
+
+The primary aim of the project is to utilize the BrainAGE biomarker to capture individual age-related brain structure differences between SCI patients and controls. The secondary goal is to further explore regional changes in brain structure to identify specific alterations that may provide insights into the adaptive or maladaptive processes leading to neuropathic pain.
+
+This project also aims to address the small sample size problem in SCI studies while considering the privacy and ethical concerns associated with sharing individual images across institutions. To achieve this, the repository will provide each center with a baseline processing pipeline, enabling local analysis and eliminating the need to share sensitive data. Furthermore, having a standardized pipeline will ensure that meta-analyses and conclusions drawn from the study are not affected by differences in data processing.
+
+We are currently in the initial stage of the project, where we are seeking feedback from select institutions regarding the processing approach and the ease of use of the repository. If you have any feedback or quesitions, do not hesitate to contact the Project Lead (Oscar Ortiz: oscar.ortizangulo@ubc.ca)
+
+
+
 
 ![SCI_MAP Study Banner](assets/study_banner.png)
-
+Figure 1. Visual Summary of the project. 
 
 
 ## Prerequisites
@@ -45,6 +53,7 @@ This repository serves as a centralized location for sharing processing scripts 
 
 
 ![SCI_MAP Workflow](assets/flowchart.png)
+Figure 2. Summary of standarized steps for proecessing the data. Blue boxes represent FreeSurfer related outputs. Orange boxes represent bash scripts that need to be run in a WSL or linux environment. Purple boxes represent python scripts. Blue represents R scripts. Green represent .csv files. Finally, red represents the outputs that would be required to be sent for the meta analysis. 
 
 
 
@@ -772,7 +781,7 @@ Following analysis you should end up with 10 .csv files which will be sent back 
 If you encounter any issues with this pipeline or have questions about its implementation, please contact:
 
 Oscar Ortiz (Project Lead) 
-Email: oscar.ortiz.angulo@gmail.com
+Email: oscar.ortizangulo@ubc.ca
 
 Ryan Loke 
 Email: lokeryan@student.ubc.ca
