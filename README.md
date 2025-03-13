@@ -399,6 +399,8 @@ The completed QC spreadsheet will be essential for:
 - Sharing QC decisions with collaborators
 - Future reference and reproducibility
 
+The filled ENIGMA_Cortical_QC_Template.xlsx should be shared with the primary group to assess how much data is being retained and keep logs of quality of data.
+
 
 ### Step 3: Data Organization for Brain Age Prediction (aparc_aseg_pybrain.sh)
 
@@ -681,6 +683,9 @@ The brainpadstats.py script generates eleven files:
 11. TimeSinceInjury_Comparison.csv: Statistical results for Time since Injury comparison
 12. ChronologicalAge_Comparison.csv: Statistical results for age comparisons
 
+
+These output files should be shared with the primary investigating group for the meta analysis of the data. 
+
 ### Step 8: Structural Analyses
 
 We will be using some new scripts to compile the data into certain formats for specific statistical analyses in R and RStudio. The scripts will compile data about the various cortical measurements, intracranial volume, subcortical volumes, and cortical thickness. 
@@ -775,6 +780,10 @@ Following analysis you should end up with 10 .csv files which will be sent back 
 2. 4 .csv files comparing subcortical volumes between individuals with spinal cord injury (with and without neuropathic pain) and healthy individuals.
 3. 1 .csv summary file containing information on cortical thickness.
 4. 1 .csv summary file containing information on intracranial volume.
+
+
+These output files should be shared with the primary investigating group for the meta analysis of the data. 
+
 
 ## Support and Contact
 
