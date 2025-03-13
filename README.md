@@ -41,7 +41,7 @@ Your data should be organized following BIDS conventions:
 
 This repository serves as a centralized location for sharing processing scripts with all participating institutes in the SCI_MAP project. The standardized scripts ensure consistent analysis across different sites and datasets.
 
-![SCI_MAP Workflow](assets/workflow.png)
+![SCI_MAP Workflow](assets/flowchart.png)
 
 ### Step 1: FreeSurfer Processing (reconall.sh)
 

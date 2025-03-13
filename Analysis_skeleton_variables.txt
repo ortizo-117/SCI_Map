@@ -1,0 +1,17 @@
+line 82: results -> create a new dataframe to store your results. Make sure to include the analysis name in the name e.g. PvH_results 
+line 82: dataframe -> List the name to the dataframe for the specific analysis being ran e.g. SCI_PvH
+line 82: 5 -> you may need to change this number based on your own dataframe, this states that analysis begins on column 5. If your data starts earlier or later, you'll need to change this.
+line 85: dataframe -> same as before
+line 87: dataframe -> same as before
+line 90: dataframe -> same as before
+line 90: group1 -> list the first group in the same correspondence to your metadata e.g. SCI_PvH group 1 = SCI_P
+line 91: dataframe -> same as before
+line 91: group2 -> list the second group in the same correspondence to your metadata e.g. SCI_PvH group 2 = SCI_H
+line 100 x2: dataframe -> same as before
+line 100: group1 -> same as above
+line 102 x2: dataframe -> same as above
+line 102: group2 -> same as above
+line 112: summary -> create a new results dataframe to sompile all your results e.g. SCI_PvH_results
+line 112: results -> the first dataframe you made at the beginning of the loop on line 77 e.g. SCI_PvH
+line 114: summary -> same as above on line 107
+line 114: code -> the specific  analysis you conducted e.g. PvH, nNPvH, etc. 
