@@ -41,7 +41,13 @@ Your data should be organized following BIDS conventions:
 
 This repository serves as a centralized location for sharing processing scripts with all participating institutes in the SCI_MAP project. The standardized scripts ensure consistent analysis across different sites and datasets.
 
+
+
+
 ![SCI_MAP Workflow](assets/flowchart.png)
+
+
+
 
 ### Step 1: FreeSurfer Processing (reconall.sh)
 
@@ -733,6 +739,7 @@ subjects=$(ls ${SUBJECTS_DIR} | grep "sub-")
 Run script using `bash extract_subcortical.sh`. This will create a file named `subcortical_volumes.csv` in your derivatives folder. 
 
 **R Analysis**
+### Step 9: Statistical Analysis for Structural Data 
 
 Following compiling all the data necessary for analysis, we can then conduct an R analysis for all data. This will compare the regions using a t-test, and calculate the effect size along with other statistical measures. You will need the following packages listed below, as well as the following files you should have compiled above. 
 
