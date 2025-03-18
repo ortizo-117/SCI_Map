@@ -43,7 +43,7 @@ metadata <- read.csv(
   sep=","
 )
 
-#Merge your metadata to your data, code refers to your cohort labels 
+#Merge your metadata to your data
 SCI_Data <- SCI_Data %>%
   left_join(dplyr::select(metadata, ID, code, sex, age), by = c("Subject" = "ID"))
 
@@ -54,16 +54,17 @@ SCI_Data_wide <- SCI_Data %>%
   pivot_wider(names_from = hemisphere_region_measure, values_from = Value)
 
 #Subset your master dataframe to smaller ones for individual comparisons
-#PvH indicates people with SCI and neuropathic pain vs control
-SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","control"), ]) 
 
-#nNPvH indicates people with SCI but no neuroapthic pain vs control
+#PvH indicates people with SCI and neuropathic pain vs healthy individuals
+SCI_PvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_P","control"), ])
+
+#nNPvH indicates people with SCI but no neuroapthic pain vs healhty individuals
 SCI_nNPvH <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","control"), ])
 
 #nNPvP indicates people with SCI but no neuropathic pain vs people with SCI and neuropathic pain
 SCI_nNPvP <- data.frame(SCI_Data_wide[SCI_Data_wide$code %in% c("SCI_nNP","SCI_P"), ])
 
-#IvH indicates all people with SCI vs control
+#IvH indicates all people with SCI vs healthy individuals
 SCI_IvH <- as.data.frame(SCI_Data_wide %>%
                            mutate(code = case_when(
                              code %in% c("SCI_P", "SCI_nNP") ~"SCI",
@@ -97,10 +98,8 @@ SCI_IvH <- as.data.frame(SCI_Data_wide %>%
    data.frame(
      Region = region,
      p_value = t_test$p.value,
-     Mean_Group1 = mean(*dataframe*[*dataframe*$code == "*group1", 
-                                    region], na.rm = TRUE),
-     Mean_Group2 = mean(*dataframe*[*dataframe*$code == "*group2*", 
-                                    region], na.rm = TRUE),
+     Mean_Group1 = mean(*dataframe*[[region]][*dataframe*$code == "*group1*"], na.rm = TRUE),
+     Mean_Group2 = mean(*dataframe*[[region]][*dataframe*$code == "*group2*"], na.rm = TRUE),
      t_statistic = t_test$statistic,
      Cohen_d = d_value,
      SE_Cohen_d = se_d,
@@ -220,10 +219,8 @@ SUB_PvH_results <- lapply(colnames(SUB_PvH)[5:ncol(SUB_PvH)],
   data.frame(
     Region = region,
     p_value = t_test$p.value,
-    Mean_Group1 = mean(SUB_PvH[SUB_PvH$code == "SCI_P", 
-                               region], na.rm = TRUE),
-    Mean_Group2 = mean(SUB_PvH[SUB_PvH$code == "control", 
-                               region], na.rm = TRUE),
+    Mean_Group1 = mean(SUB_PvH[[region]][SUB_PvH$code == "SCI_P"], na.rm = TRUE),
+    Mean_Group2 = mean(SUB_PvH[[region]][SUB_PvH$code == "control"], na.rm = TRUE),
     t_statistic = t_test$statistic,
     Cohen_d = d_value,
     SE_Cohen_d = se_d,
