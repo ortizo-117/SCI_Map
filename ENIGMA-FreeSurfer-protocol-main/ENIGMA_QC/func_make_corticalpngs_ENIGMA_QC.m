@@ -17,7 +17,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-function make_corticalpngsFS(dirO,subject,imageF,overlay)
+function func_make_subcorticalFS_ENIGMA_QC(dirO,subject,imageF,overlay)
 
 subj=subject;
 dirOS=char(strcat(dirO,filesep,subject,filesep));
