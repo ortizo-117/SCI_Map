@@ -2,7 +2,7 @@
 
 # Add path conversion functions at the start of the script
 convert_to_unix_path() {
-    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" || "$OSTYPE" == "linux-gnu"]]; then
         # Convert Windows path to WSL path
         wslpath -u "$1"
     else
@@ -12,7 +12,7 @@ convert_to_unix_path() {
 }
 
 convert_to_matlab_path() {
-    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
+    if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32"  || "$OSTYPE" == "linux-gnu"]]; then
         # Convert to Windows path for MATLAB
         wslpath -w "$1"
     else

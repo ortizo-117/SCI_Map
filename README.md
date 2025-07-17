@@ -458,10 +458,10 @@ If you and your group/institution are okay with datasharing, it would be easiest
 The final preparation step involves manually adding participant age information to your dataset:
 
 1. Open the output file from Step 3
-2. Add a new column for age as the second column (right after subject ID)
+2. Add a new column for age as the second column (right after  "ID" column)
 3. Save the file as 'subject_features.csv' with the following structure:
 
-subject_id,age,feature1,feature2,...
+ID,age,feature1,feature2,...
 
 ### Step 5: Brain Age Prediction
 
@@ -511,14 +511,14 @@ Before running the prediction script, you need to modify the following paths in 
 **Python Environment Setup:**
 The ExtraTreesModel and scaler.pkl files were built using specific Python dependencies. To ensure compatibility:
 
-1. Create a new conda environment following PyBrain's requirements:
+1. For reproducibility, we suggest setting up a conda environmnet (can download a distribution [here] (https://www.anaconda.com/)). Once installed, you can select the anaconda_prompt app in the anaconda navigator, navigate to the SCI_MAP folder, and create the environment utilizing the using the yaml file in the PyBrainAge-main folder named "environment.yaml" as follows:
    ```bash
-   conda create  --name pybrainage_env python=3.7 scikit-learn=0.24.2 pandas=1.3.4 numpy=1.20.3
+   conda env create -f PyBrainAge-main/environment.yaml
    conda activate pybrainage_env 
    ```
 
 
-2. Install the required dependencies as specified in the PyBrain repository:
+2. Check that the required dependencies as specified in the PyBrain repository:
    - Follow the installation steps at https://github.com/james-cole/PyBrainAge
    - This ensures correct versions of scikit-learn, pandas, and other dependencies
 
