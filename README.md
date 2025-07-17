@@ -43,7 +43,7 @@ To participate in this project, you need:
 
 ## Data Structure
 
-Your data should be organized following BIDS conventions: 
+Your data should be organized following BIDS conventions. Ensure your naming schemes are consistent subject folders and image names (e.g. all subject folders are labeled as sub-xx where xx is the subject number, and all anatomical images follow a similar structure of sub-xx_T1w.nii.gz). Refer to datastructure below or refer to https://bids.neuroimaging.io/index.html
 
 ## Repository Purpose and Processing Pipeline
 
@@ -58,11 +58,11 @@ Figure 2. Summary of standarized steps for proecessing the data. Blue boxes repr
 
 
 
-### Step 1: FreeSurfer Processing (reconall.sh)
+### Step 1: FreeSurfer Processing (recon_all.sh)
 
 **Note:** If you have already run FreeSurfer's recon-all on your data, you can skip this step and proceed directly to Step 2. However, ensure you have a working FreeSurfer installation as it will be required for Step 3.
 
-The initial processing step uses the `reconall.sh` script located in the processing folder. This script can be run on:
+The initial processing step uses the `recon_all.sh` script located in the Preprocessing folder. This script can be run on:
 - Linux systems
 - Windows systems using Windows Subsystem for Linux (WSL)
   - Recommended: Ubuntu on WSL
@@ -83,19 +83,28 @@ The script:
 - For Windows users: WSL installed with Ubuntu distribution
 - FreeSurfer properly configured in your Linux/WSL environment
 - Sufficient disk space for FreeSurfer outputs (~1GB per subject)
+- The thread and queue hardware allocation we have is based on our system containing an i7-13700k, RTX4070ti, 64GB DDR4 RAM. 
 
 #### Usage
-1. Open the `reconall.sh` script and update the directory paths:
+1. Open the `recon_all.sh` script and update the directory paths around line 49-53:
    ```bash
-   # Update these paths in reconall.sh
-   RAWDATA_DIR="/path/to/your/bids/dataset"      # Directory containing your BIDS-formatted T1w images
-   DERIVATIVES_DIR="/path/to/output/derivatives"  # Directory where FreeSurfer outputs will be saved
+   # Update these paths in recon_all.sh
+   RAWDATA_DIR="/path/to/rawdata"      # Directory containing your rawdata folder, containing subject folders with anatomical images
+   DERIVATIVES_DIR="/path/to/derivatives"  # Directory where FreeSurfer outputs will be saved
+   THREADS=6                           # Can change based on system hardware, if unsure, leave as is
+   QUEUE_SIZE=2                        # Can change based on system hardware, if unsure, leave as is
+   T1_PATTERN="*_T1w.nii.gz"           # Ending of the fileneame for T1w anatomical image within subject folder
    ```
+   You may need to also update the main queue loop at the bottom around line 138:
+   ```bash
+   for subj_path in "$RAWDATA_DIR"/sub-*; do       # May need to change sub-* to fit the naming scheme of your subject folders. 
+   ```
+   sub-* assumes that your subject folders begin with 'sub-' and ends with an identifier. (e.g. sub-07, or sub-SCI42)
 
 2. Make the script executable and run it:
    ```bash
-   chmod +x processing/reconall.sh
-   ./processing/reconall.sh
+   chmod +x processing/recon_all.sh
+   ./processing/recon_all.sh
    ```
 
 **Error Handling Tip:**
@@ -105,7 +114,7 @@ If you encounter script execution errors, especially when running on WSL or afte
 sudo apt-get install dos2unix
 
 # Convert the script to Unix format
-dos2unix processing/reconall.sh
+dos2unix processing/recon_all.sh
 ```
 This fixes the "bad interpreter" or similar errors caused by Windows-style line endings (CRLF).
 
@@ -131,7 +140,7 @@ study/
 ```
 
 #### Processing Time
-- Approximately 20 minutes per subject (benchmarked on NVIDIA 4070Ti)
+- Approximately 1.5 hours per subject (benchmarked on NVIDIA RTX4070ti)
 
 ### Step 2: Quality Assurance
 
@@ -431,7 +440,7 @@ This step uses the `aparc_aseg_pybrain.sh` script, which:
    ./processing/aparc_aseg_pybrain.sh
    ```
 
-**Note:** Like the reconall.sh script, this can be run on:
+**Note:** Like the recon_all.sh script, this can be run on:
 - Linux systems
 - Windows systems using WSL (Ubuntu recommended)
 
@@ -442,6 +451,7 @@ dos2unix processing/aparc_aseg_pybrain.sh
 ```
 
 The script will generate a CSV file containing all the required features for brain age prediction.
+If you and your group/institution are okay with datasharing, it would be easiest to send us the recon-all outputs gathered after this step and after step 8 along with the appropriate metadata. Reminder that the recon-all output does not contain any anatomical images, only different measurements of different brain regions. We would then be able to run the pipeline locally, and it would save you and your group a lot of time. If datasharing is not an option, then you may continue with the pipeline below. 
 
 ### Step 4: Age Data Integration
 
@@ -688,8 +698,11 @@ These output files should be shared with the primary investigating group for the
 
 ### Step 8: Structural Analyses
 
-We will be using some new scripts to compile the data into certain formats for specific statistical analyses in R and RStudio. The scripts will compile data about the various cortical measurements, intracranial volume, subcortical volumes, and cortical thickness. 
-There are four different scripts for each statistic, and they can all be found in the structural-analysis folder in the main branch, in the sub folder scripts. Some lines will need to be changed to fit your machine. 
+We will be using some new scripts to compile the data into certain formats for specific statistical analyses in R and RStudio. The scripts will compile data about the various cortical measurements, intracranial volume, subcortical volumes, regional white matter volumes, and cortical thickness. 
+There are four different scripts for each statistic, and they can all be found in the structural-analysis folder in the main branch, in the sub folder scripts. Some lines may need to be changed. 
+Before beginning, make sure these scripts are accessible through WSL (Ubuntu), we like to put these scripts in another folder called 'code' within the project directory (same folder containing rawdata, derivatives), which is where all the statistical output files will be found. 
+
+All these 4 scripts can be found in Step_8_Data_Aggergation folder. 
 
 **Potential issues and how to fix them**
 #### 1: Giving scripts permission to run
@@ -706,23 +719,24 @@ Which can be fixed using the following line of code where filename refers to the
 ```bash
 sed -i 's/\r$// filename
 ```
-**extract_cortical.sh**
-This script extracts all cortical measures and measurements from your freesurfer output, assuming all your files and data are in BIDS format. 
-You will have to change line 4 to the path to your BIDS directory, the folder containing your code, rawdata, and derivatives. 
+**DKStats.sh**
+This script extracts various measurements from various cortical regions from your freesurfer output, assuming all your files and data are in BIDS format. This script also extracts subcortical volumes, which we will separate later in R. 
+You will have to change line ~4 to the path to your BIDS directory, the folder containing your derivatives output from the recon_all . 
 ```bash
-BIDS_DIR="/path/to/BIDS/directory"
+DERIV_DIR="/path/to/derivatives"       # This will be the same as in the recon_all.sh script
 ```
-Depending on how your BIDS format looks like, you may need to change line 10. This assumes your folders containing your data in rawdata or derivatives is labeled sub-xx (e.g. sub-01), but this may need to be changed if you're using underscores instead, or a different header. 
+Around line 48, you may need to change this line to fit your subject folder naming scheme
 ```bash
-subjects=$(ls ${SUBJECTS_DIR} | grep "sub-")
+for SUBJ_DIR in "$DERIV_DIR"/sub-*; do       # May need to change sub- to fit your specific naming scheme, same as in the recon_all.sh script
 ```
-Run script using `bash extract_cortical.sh`. This will produced a file called `cortical_stats_long.csv` at the bottom of your derivatives folder. 
+This assumes that your subject folders start with sub- and end with an identifier (sub-04 or sub-SCI124), change if naming scheme is different (e.g. SUB_04, SUB_SCI124 - change to SUB_).
+Run script using `DKStats.sh`. This will produced a file called `dk_all_stats.csv` in the folder where your scripts are held (DKStats.sh). 
 
 **extract_cortical_thickness.sh**
 This script extract the average cortical thickness of your subjects, from the left and right hemisphere separately.
 You will need to change line 4 again, this time directly to the derivatives folder in your BIDS folder.
 ```bash
-BIDS_DIR="/path/to/derivatives"
+DERIVATIVES_PATH="/path/to/derivatives"
 ```
 Again, depending on your BIDS format, you may need to change line 11 to fit the naming of your subject folders.
 ```bash
@@ -741,49 +755,23 @@ for SUBJECT_DIR in "$BIDS_DIR"/sub-*/; do
 ```
 Run script using `bash extract_ICV.sh`. This will create a file called `ICV_data.csv` in your code folder.
 
-**extract_subcortical.sh**
-This script compiles the subcortical structure volumes. Line 4 will need to be changed to your main BIDS folder.
+**WM_Stats.sh**
+This script compiles regional white matter volumes of each subject. You will need to change line 4 to the derivatives folder in your BIDS directory.
 ```bash
-BIDS_DIR="/path/to/directory"
+DERIVATIVES_DIR="/path/to/derivatives"
 ```
-Again, depending on your BIDS format, you may need to change line 10 to fit the naming of your subject folders.
+Again, depending on your BIDS format, you may need ot change line 8 and line 35 to fit the naming of your subject folders.
 ```bash
-subjects=$(ls ${SUBJECTS_DIR} | grep "sub-")
+for SUBJECT_DIR in "$DERIVATIVES_DIR"/sub-*; do       # May have to change sub- depending on naming scheme
+...
+for SUBJECT_DIR in "$DERIVATIVES_DIR"/sub-*; do       # Same for line 35.
 ```
-Run script using `bash extract_subcortical.sh`. This will create a file named `subcortical_volumes.csv` in your derivatives folder. 
+Running this script will compile a file called `wm_volumes.csv` in your code folder containing all your regional WM volumes. 
 
 **R Analysis**
 ### Step 9: Statistical Analysis for Structural Data 
 
-Following compiling all the data necessary for analysis, we can then conduct an R analysis for all data. This will compare the regions using a t-test, and calculate the effect size along with other statistical measures. You will need the following packages listed below, as well as the following files you should have compiled above. 
-
-1. Working version of R and RStudio (same as above), with the following packages
-   - tidyverse
-   - data.table
-   - multcomp
-   - effsize
-   - writexl
-   - ggpubr
-2. Freesurfer outputs compiled
-   - Cortical measurments taken from the Destrieux atlas (same as before)
-   - Subcortical measurements from the aseg file (same as before)
-   - Cortical thickness
-   - Intracranial volume
-
-Once everything is order, you may refer to the RScript for further details on how to run the analysis. The file name `FreesurferAnalysisScriptCondensed.R` is a much more shortened version of the analysis, and assumes the user has knowledge in R and RStudio. Most of the code is there, but bits will have to be changed to get the proper output according to your machine. The RMarkdown file `FreesurferAnalysisScript.Rmd` contains a full tutorial on how to get this to run, including screenshots and more tables, if you are unfamiliar with R/RStudio, please refer to that if you get stuck 
-
-**Outputs**   
-
-Following analysis you should end up with 10 .csv files which will be sent back to us for meta-analysis.
-
-1. 4 .csv files comparing strucutral measurements between individuals with spinal cord injury (with and without neuropahtic pain) and healthy individuals.
-2. 4 .csv files comparing subcortical volumes between individuals with spinal cord injury (with and without neuropathic pain) and healthy individuals.
-3. 1 .csv summary file containing information on cortical thickness.
-4. 1 .csv summary file containing information on intracranial volume.
-
-
-These output files should be shared with the primary investigating group for the meta analysis of the data. 
-
+Following compiling all the data necessary for analysis, we can then conduct an R analysis for all data. This will compare the regions using a t-test, and calculate the effect size along with other statistical measures. Please refer to the README.md file within the Step_9_R_Analysis folder for a more detailed breakdown of the analysis pipeline. 
 
 ## Support and Contact
 

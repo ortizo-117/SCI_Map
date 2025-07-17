@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the path to the BIDS derivatives directory
-BIDS_DIR="/path/to/derivatives"
+BIDS_DIR="/path/to/derivatives"     # Path to derivatives
 
 # Define the output CSV file
 OUTPUT_CSV="icv_data.csv"

@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Define the path to the derivatives folder
-DERIVATIVES_PATH="/path/to/derivatives"
+DERIVATIVES_PATH="/path/to/derivatives"         # Change pathway to derivatives directory
 OUTPUT_CSV="cortical_thickness.csv"
 
 # Write the header to the CSV file
 echo "subjectid,lh_thickness,rh_thickness" > "$OUTPUT_CSV"
 
 # Loop through each subject directory
-for subject_dir in "$DERIVATIVES_PATH"/sub-*; do
+for subject_dir in "$DERIVATIVES_PATH"/sub-*; do        # Change sub- if necessary
     if [ -d "$subject_dir" ]; then
         # Extract subject ID
         subject_id=$(basename "$subject_dir")
