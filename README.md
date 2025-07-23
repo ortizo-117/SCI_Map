@@ -1,15 +1,15 @@
 # SCI MAP
 ## Project Description
 
-The SCI_MAP project is designed to analyze structural brain differences between individuals with spinal cord injury (SCI) and healthy age-matched controls. In SCI, alterations in brain structure and function occur as a direct effect of nerve damage, through secondary mechanisms, and due to long-term consequences such as paralysis and neuropathic pain. Structural brain maturation in humans is characterized by region-specific, non-linear patterns of progressive or regressive processes, such as gray matter atrophy.
+The SCI_MAP project is designed to analyze structural brain differences between individuals with spinal cord injury (SCI) and healthy age-matched controls. In SCI, alterations in brain structure and function can arise due to direct effects of nerve damage, secondary mechanisms, and long-term consequences such as paralysis and neuropathic pain. Structural brain maturation in humans is known to follow region-specific, non-linear trajectories characterized by progressive or regressive changes, such as gray matter atrophy.
 
-The brain age gap estimation (BrainAGE) method utilizes structural MRI (T1-weighted MR) data to directly quantify the acceleration or deceleration of individual brain aging. It is computed as the difference between the apparent age of an individual's brain and their chronological age. Inthis project, the apparent brain age is determined using a normative model trained on 29,175 scans, primarily from the UK Biobank dataset, covering a wide age range from 2 to 100 years.
+One of the primary goals of this project is to utilize the Brain Age Gap Estimation (BrainAGE) biomarker to quantify age-related deviations in brain structure. BrainAGE is calculated as the difference between an individual’s predicted brain age—estimated using T1-weighted structural MRI—and their chronological age. In this project, apparent brain age is determined using a normative model trained on 29,175 scans, primarily from the UK Biobank, spanning a wide age range from 2 to 100 years.
 
-The primary aim of the project is to utilize the BrainAGE biomarker to capture individual age-related brain structure differences between SCI patients and controls. The secondary goal is to further explore regional changes in brain structure to identify specific alterations that may provide insights into the adaptive or maladaptive processes leading to neuropathic pain.
+In addition to BrainAGE-based analysis, a second primary aim of the project is to investigate regional, surface-based morphometric changes in the brain. such as cortical thickness, surface area and curvature. This approach will assess localized structural alterations in specific cortical and subcortical regions, aiming to identify and quantify subtle changes that may be associated with SCI and neuropathic pain—changes that might be obscured by aggregate biomarkers like BrainAGE. By focusing on surface area, cortical thickness, and volume metrics derived from individual brain regions, we hope to capture fine-grained structural signatures of adaptive or maladaptive plasticity.
 
-This project also aims to address the small sample size problem in SCI studies while considering the privacy and ethical concerns associated with sharing individual images across institutions. To achieve this, the repository will provide each center with a baseline processing pipeline, enabling local analysis and eliminating the need to share sensitive data. Furthermore, having a standardized pipeline will ensure that meta-analyses and conclusions drawn from the study are not affected by differences in data processing. Once processing is done at each center, the goal is to send the group level analysis to the project lead so that a meta analysis across the each center can be performed. 
+This project also addresses the longstanding issue of limited sample sizes in SCI research, while taking into account privacy and ethical constraints surrounding the sharing of individual brain images across institutions. To that end, this repository provides each participating center with a standardized, baseline processing pipeline that enables local data analysis and avoids the need to transfer sensitive imaging data. This harmonized approach ensures that results remain comparable across sites and that meta-analyses can be reliably conducted. 
 
-We are currently in the initial stage of the project, where we are seeking feedback from select institutions regarding the processing approach and the ease of use of the repository. If you have any feedback or quesitions, do not hesitate to contact the Project Lead (Oscar Ortiz: oscar.ortizangulo@ubc.ca)
+NOTE: The current pipeline has been tested in a Windows 10 system using Ubuntu WSL. 
 
 
 
@@ -18,14 +18,28 @@ We are currently in the initial stage of the project, where we are seeking feedb
 Figure 1. Visual Summary of the project. 
 
 
+
+After local processing, institutions are encouraged to share their FreeSurfer outputs (following Step 1 of the pipeline) along with non-identifiable subject metadata. These outputs can then be centrally aggregated by the coordinating team in Vancouver for further analysis and meta-analytic synthesis. As FreeSurfer outputs do not contain directly identifiable information, this method offers a secure and efficient mechanism for collaborative data pooling.
+
+
+
+![Steps to the pipeline](assets/steps_to_the_pipeline.PNG)
+Figure 2. Steps to the pipeline
+
+
+However, recognizing that data sharing policies and logistical constraints vary across institutions, the pipeline has been designed to offer multiple integration points. Institutions can contribute at various stages based on their technical capabilities and ethical guidelines, ensuring broad participation without compromising compliance. Below there is a chart with the information to consider when deciding what step of the pipeline would be ideal your institution to share your data
+
+
+![Considerations](assets/considerations.PNG)
+Figure 3. Considerations when deciding on the step your institution would like to share your data. 
+
 ## Prerequisites
 
 To participate in this project, you need:
 
 1. **Neuroimaging Data**
-   - 3D T1-weighted MRI scans
+   - 3D T1-weighted MRI scans from both SCI and (age and sex matched) control cohort scans
    - Data must be organized in BIDS format
-   - Both SCI and control cohort scans
    - Alternatively, you can also have the recon-all outputs from FreeSurfer
 
 2. **Software Requirements**
@@ -55,14 +69,16 @@ This repository serves as a centralized location for sharing processing scripts 
 ![SCI_MAP Workflow](assets/flowchart.png)
 Figure 2. Summary of standarized steps for proecessing the data. Blue boxes represent FreeSurfer related outputs. Orange boxes represent bash scripts that need to be run in a WSL or linux environment. Purple boxes represent python scripts. Blue represents R scripts. Green represent .csv files. Finally, red represents the outputs that would be required to be sent for the meta analysis. 
 
+### Step 0 (Optional): Defacing
 
+**Defacing** refers to the removal of facial features from MRI scans to protect patient identity. Defacing raw 3D T1-weighted images ensures that medical imaging data can be shared ethically across institutions while respecting and preserving the anonymity of each participant. This step is only necessary if you plan to share raw 3D T1 images with the Vancouver team for pipeline processing. Therefore, we will not go into detail on how to perform defacing here. However, tools such as [**pydeface**](https://github.com/poldracklab/pydeface), [**mri_deface**](https://surfer.nmr.mgh.harvard.edu/fswiki/mri_deface), and [**fsl_deface**](https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/fsl_deface) can be used to properly and ethically deface your images before sharing.
 
 
 ### Step 1: FreeSurfer Processing (recon_all.sh)
 
 **Note:** If you have already run FreeSurfer's recon-all on your data, you can skip this step and proceed directly to Step 2. However, ensure you have a working FreeSurfer installation as it will be required for Step 3.
 
-The initial processing step uses the `recon_all.sh` script located in the Preprocessing folder. This script can be run on:
+The initial processing step uses the `recon_all.sh` script located in the Step_1_Preprocessing folder. This script can be run on:
 - Linux systems
 - Windows systems using Windows Subsystem for Linux (WSL)
   - Recommended: Ubuntu on WSL
@@ -245,7 +261,7 @@ ENIGMA_outputs/
 2. Use WSL paths for other arguments
 3. Ensure MATLAB can access the ENIGMA_QC functions
 
-**Quality Assessment Process:**
+**Step 2: Quality Assessment Process:**
 After generating the QC HTML files, visual inspection of the segmentations should be performed following the ENIGMA Cortical Quality Control Guide 2.0 [available here](https://enigma.ini.usc.edu/protocols/imaging-protocols/). 
 
 Common QC Issues to Look For:
