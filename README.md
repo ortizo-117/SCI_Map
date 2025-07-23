@@ -26,9 +26,7 @@ After local processing, institutions are encouraged to share their FreeSurfer ou
 <div align="center">
   <img src="assets/steps_to_the_pipeline.PNG" alt="Steps to the pipeline">
 </div>
-<p align="center"><em>Figure 2. Visual Summary of the project.</em></p>
-
-
+Figure 2. Steps to the pipeline
 
 
 However, recognizing that data sharing policies and logistical constraints vary across institutions, the pipeline has been designed to offer multiple integration points. Institutions can contribute at various stages based on their technical capabilities and ethical guidelines, ensuring broad participation without compromising compliance. Below there is a chart with the information to consider when deciding what step of the pipeline would be ideal your institution to share your data
