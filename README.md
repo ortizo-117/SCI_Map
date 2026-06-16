@@ -3,9 +3,9 @@
 
 The SCI_MAP project is designed to analyze structural brain differences between individuals with spinal cord injury (SCI) and healthy age-matched controls. In SCI, alterations in brain structure and function can arise due to direct effects of nerve damage, secondary mechanisms, and long-term consequences such as paralysis and neuropathic pain. Structural brain maturation in humans is known to follow region-specific, non-linear trajectories characterized by progressive or regressive changes, such as gray matter atrophy.
 
-One of the primary goals of this project is to utilize the Brain Age Gap Estimation (BrainAGE) biomarker to quantify age-related deviations in brain structure. BrainAGE is calculated as the difference between an individual’s predicted brain age—estimated using T1-weighted structural MRI—and their chronological age. In this project, apparent brain age is determined using a normative model trained on 29,175 scans, primarily from the UK Biobank, spanning a wide age range from 2 to 100 years.
+One of the primary goals of this project is to quantify regional deviations in brain structure using BrainCharts normative modeling. Instead of estimating a single Brain Age Gap Estimation (BrainAGE) value, the current workflow applies pre-estimated lifespan normative models to FreeSurfer-derived regional cortical thickness and subcortical volume measures. The output is a set of regional z-scores that indicate how far each participant deviates from age-, sex-, and site-adjusted normative expectations.
 
-In addition to BrainAGE-based analysis, a second primary aim of the project is to investigate regional, surface-based morphometric changes in the brain. such as cortical thickness, surface area and curvature. This approach will assess localized structural alterations in specific cortical and subcortical regions, aiming to identify and quantify subtle changes that may be associated with SCI and neuropathic pain—changes that might be obscured by aggregate biomarkers like BrainAGE. By focusing on surface area, cortical thickness, and volume metrics derived from individual brain regions, we hope to capture fine-grained structural signatures of adaptive or maladaptive plasticity.
+In addition to the BrainCharts z-score analysis, a second primary aim of the project is to investigate raw regional FreeSurfer morphometry, including cortical thickness, cortical surface area, cortical volume, subcortical volume, intracranial volume, and white matter volume. Running both tracks allows us to test whether SCI and neuropathic pain effects are visible as normative deviations, raw morphometric group differences, or both.
 
 This project also addresses the longstanding issue of limited sample sizes in SCI research, while taking into account privacy and ethical constraints surrounding the sharing of individual brain images across institutions. To that end, this repository provides each participating center with a standardized, baseline processing pipeline that enables local data analysis and avoids the need to transfer sensitive imaging data. This harmonized approach ensures that results remain comparable across sites and that meta-analyses can be reliably conducted. 
 
@@ -47,7 +47,7 @@ To participate in this project, you need:
 2. **Software Requirements**
    - WSL installation (Here tested on Ubuntu 22.04.5 LTS )
    - FreeSurfer (installed and operational, here tested on 7.4.1)
-   - Python dependencies (listed in requirements.txt)
+   - Python dependencies for BrainCharts/PCNtoolkit normative modeling
    - Matlab executable from WSL
    - RStudio
 
@@ -429,367 +429,161 @@ The completed QC spreadsheet will be essential for:
 The filled ENIGMA_Cortical_QC_Template.xlsx should be shared with the primary group to assess how much data is being retained and keep logs of quality of data.
 
 
-### Step 3: Data Organization for Brain Age Prediction (aparc_aseg_pybrain.sh)
+### Step 3: BrainCharts Normative Modeling
 
-After FreeSurfer processing and quality assurance, the next step involves organizing the structural data into a format compatible with PyBrain for brain age prediction analysis. 
+Steps 3 to 7 from the older BrainAGE workflow have been replaced by a single BrainCharts normative-modeling step. This step converts FreeSurfer outputs into the BrainCharts input format, uses a subset of healthy controls to adapt the model to each site/scanner, applies the normative models to the held-out controls and SCI participants, and exports regional z-scores for downstream analysis.
+
+The workflow follows the core prediction and adaptation logic in [`apply_normative_models_ct.ipynb`](https://github.com/ortizo-117/braincharts_normative_modeling_SCI/blob/main/scripts/apply_normative_models_ct.ipynb). The scripts for this step are in `Step_3_BrainCharts_Normative_Modeling`.
 
 **Prerequisites:**
-- Completed FreeSurfer processing (from Step 1 or pre-existing)
-- Working FreeSurfer installation (required for reading FreeSurfer outputs)
-- FreeSurfer environment properly configured
+- Completed and QC-approved FreeSurfer outputs from Step 1 and Step 2.
+- A participant metadata CSV with at least `subject`, `age`, `sex`, `site`, `sitenum`, and `cohort`.
+- A working Python environment with BrainCharts dependencies, including `pcntoolkit==0.35`, `numpy`, and `pandas`.
+- A local clone of the BrainCharts repository with the `lifespan_57K_82sites` model downloaded and unzipped.
 
-This step uses the `aparc_aseg_pybrain.sh` script, which:
+Clone and prepare the BrainCharts repository:
 
-1. Extracts relevant metrics from FreeSurfer's aparc and aseg outputs
-2. Organizes the data into a standardized format required by PyBrain
-3. Generates a consolidated dataset for brain age prediction
-
-#### Usage
-1. Open the `aparc_aseg_pybrain.sh` script and update the directory paths:
-   ```bash
-   # Update these paths in aparc_aseg_pybrain.sh
-   ROOT_DIR="/path/to/your/freesurfer/subjects"    # Directory containing FreeSurfer processed subjects
-   OUTPUT_DIR="/path/to/save/pybrain/features"     # Directory where the output CSV will be saved
-   ```
-
-2. Make the script executable and run it:
-   ```bash
-   chmod +x processing/aparc_aseg_pybrain.sh
-   ./processing/aparc_aseg_pybrain.sh
-   ```
-
-**Note:** Like the recon_all.sh script, this can be run on:
-- Linux systems
-- Windows systems using WSL (Ubuntu recommended)
-
-**Error Handling Tip:**
-If you encounter script execution errors, fix line endings using dos2unix:
 ```bash
-dos2unix processing/aparc_aseg_pybrain.sh
+git clone https://github.com/predictive-clinical-neuroscience/braincharts.git
+cd braincharts/models
+unzip lifespan_57K_82sites.zip
 ```
 
-The script will generate a CSV file containing all the required features for brain age prediction.
-If you and your group/institution are okay with datasharing, it would be easiest to send us the recon-all outputs gathered after this step and after step 8 along with the appropriate metadata. Reminder that the recon-all output does not contain any anatomical images, only different measurements of different brain regions. We would then be able to run the pipeline locally, and it would save you and your group a lot of time. If datasharing is not an option, then you may continue with the pipeline below. 
+Your metadata should use the same subject IDs as the FreeSurfer output folders. For example, a longitudinal FreeSurfer folder named `sub-CON1003_ses-BASE.long.sub-CON1003` must match the `subject` value used in the metadata, unless you intentionally filter or rename subjects before this step.
 
-### Step 4: Age Data Integration
+#### 3.1 Extract FreeSurfer measures
 
-The final preparation step involves manually adding participant age information to your dataset:
+Run the FreeSurfer table builder from WSL/Linux after sourcing FreeSurfer:
 
-1. Open the output file from Step 3
-2. Add a new column for age as the second column (right after  "ID" column)
-3. Save the file as 'subject_features.csv' with the following structure:
+```bash
+bash Step_3_BrainCharts_Normative_Modeling/build_freesurfer_sheet.sh \
+  --derivs /path/to/freesurfer_outputs \
+  --outdir /path/to/outputs \
+  --parc aparc.a2009s
+```
 
-ID,age,feature1,feature2,...
+This creates `_dbg_joined_all.csv` and separate debug CSVs for aseg volume, cortical thickness, and cortical surface area. The BrainCharts cortical-thickness model uses the `aparc.a2009s`/Destrieux cortical thickness columns and selected aseg volumes.
 
-### Step 5: Brain Age Prediction
+#### 3.2 Create the BrainCharts input sheet
 
-Use the `predict.py` script to generate brain age predictions for your cohort using the PyBrain model:
+Map the FreeSurfer headers to the BrainCharts model headers and merge the participant metadata:
 
-#### Required Path Configuration
-Before running the prediction script, you need to modify the following paths in `predict.py`:
+```bash
+bash Step_3_BrainCharts_Normative_Modeling/make_brainchart_outputs.sh \
+  --joined /path/to/outputs/_dbg_joined_all.csv \
+  --dict Step_3_BrainCharts_Normative_Modeling/keys_lifespan57K_82sites.csv \
+  --metadata /path/to/metadata.csv \
+  --outdir /path/to/outputs
+```
 
-1. `age_data_path`: Path to your subject_features.csv file
-   ```python
-   age_data_path = "/path/to/your/subject_features.csv"
-   ```
+The main output is:
 
-2. `model_path`: Path to the ExtraTreesModel file
-   ```python
-   model_path = "/path/to/PyBrainAge-main/software/ExtraTreesModel"
-   ```
+```text
+/path/to/outputs/braincharts_all_subjects.csv
+```
 
-3. `scaler_path`: Path to the scaler.pkl file
-   ```python
-   scaler_path = "/path/to/PyBrainAge-main/software/scaler.pkl"
-   ```
+Required metadata columns:
 
- 3. `output_path`: Path to where you want the output file to be saved. Note that we have saved it here as "predicted_results.csv". This naming is so that it works with the next step.
-   ```python
-      output_path = '/path/to/your/results/folder/predicted_results.csv'
-   ```  
+| Column | Meaning |
+|:--|:--|
+| `subject` | FreeSurfer subject/session ID |
+| `age` | Age in years at scan |
+| `sex` | Numeric sex covariate expected by the BrainCharts model, typically 0/1 |
+| `site` | Site or scanner label |
+| `sitenum` | Numeric site/scanner code used by PCNtoolkit adaptation |
+| `cohort` | Healthy control versus SCI grouping |
 
-**Important Note:** Due to file size limitations, the ExtraTreesModel and scaler files are not directly stored in this repository. To obtain these files:
+#### 3.3 Split controls for site adaptation
 
-1. Download them from the original PyBrain repository:
-   - Visit https://github.com/james-cole/PyBrainAge
-   - Navigate to the software directory
-   - Download ExtraTreesModel and scaler.pkl files
+Use a reproducible 50/50 split of healthy controls within each site. The adaptation file contains only healthy controls; the test file contains all SCI participants plus the held-out controls.
 
-2. Place the files in your local SCI_MAP directory:
-   ```
-   SCI_MAP/
-   └── PyBrainAge-main/
-       └── software/
-           ├── ExtraTreesModel
-           └── scaler.pkl
-   ```
+```bash
+python Step_3_BrainCharts_Normative_Modeling/split_braincharts_adaptation_test.py \
+  --input /path/to/outputs/braincharts_all_subjects.csv \
+  --adaptation-out /path/to/outputs/braincharts_adaptation_controls.csv \
+  --test-out /path/to/outputs/braincharts_test.csv \
+  --adapt-fraction 0.5 \
+  --seed 117
+```
 
-3. Update the paths in your predict.py script accordingly
+By default, the split script treats `cohort` values such as `0`, `control`, `healthy`, `HC`, and `SCI_H` as healthy controls. If your site uses different labels, pass them explicitly:
 
-**Python Environment Setup:**
-The ExtraTreesModel and scaler.pkl files were built using specific Python dependencies. To ensure compatibility:
+```bash
+python Step_3_BrainCharts_Normative_Modeling/split_braincharts_adaptation_test.py \
+  --input /path/to/outputs/braincharts_all_subjects.csv \
+  --adaptation-out /path/to/outputs/braincharts_adaptation_controls.csv \
+  --test-out /path/to/outputs/braincharts_test.csv \
+  --control-values "Control,SCI_H" \
+  --adapt-fraction 0.5 \
+  --seed 117
+```
 
-1. For reproducibility, we suggest setting up a conda environmnet (can download a distribution [here] (https://www.anaconda.com/)). Once installed, you can select the anaconda_prompt app in the anaconda navigator, navigate to the SCI_MAP folder, and create the environment utilizing the using the yaml file in the PyBrainAge-main folder named "environment.yaml" as follows:
-   ```bash
-   conda env create -f PyBrainAge-main/environment.yaml
-   conda activate pybrainage_env 
-   ```
+#### 3.4 Apply the BrainCharts normative models
 
+Run the command-line BrainCharts wrapper:
 
-2. Check that the required dependencies as specified in the PyBrain repository:
-   - Follow the installation steps at https://github.com/james-cole/PyBrainAge
-   - This ensures correct versions of scikit-learn, pandas, and other dependencies
+```bash
+python Step_3_BrainCharts_Normative_Modeling/run_braincharts_normative_models.py \
+  --braincharts-root /path/to/braincharts \
+  --adaptation-csv /path/to/outputs/braincharts_adaptation_controls.csv \
+  --test-csv /path/to/outputs/braincharts_test.csv \
+  --output-dir /path/to/outputs/braincharts_normative_outputs \
+  --force-adaptation
+```
 
-**Note:** Using different Python versions or package versions may cause compatibility issues when loading the model and scaler files.
+Main outputs:
 
-If you have trouble accessing these files, please contact:
-- The original PyBrain repository maintainers
-- The SCI_MAP project coordinators
+| File | Contents |
+|:--|:--|
+| `braincharts_zscores.csv` | Metadata plus regional BrainCharts z-score columns. Use this file in Step 9. |
+| `braincharts_test_with_zscores.csv` | Full BrainCharts test sheet plus z-score columns. Useful for auditing. |
+| `braincharts_zscore_summary.csv` | Per-region z-score summary and outlier counts. |
 
-**File Generated:**
-Once you run the predict.py script, you will generate a predicted_results.csv file. 
+If you and your group/institution are allowed to share FreeSurfer-derived outputs, the most useful files to send to the coordinating team are the QC-approved FreeSurfer stats, the metadata file, `braincharts_all_subjects.csv`, the adaptation/test split report, and `braincharts_zscores.csv`. These files contain regional measurements and metadata, not raw anatomical images.
 
-### Step 6: Merging the data with the clinical data
+### Step 8: Structural Data Aggregation
 
+Step 8 prepares the raw FreeSurfer outputs used in the parallel raw morphometry analyses. These raw tables complement, but do not replace, the BrainCharts z-score file created in Step 3.
 
-To merge your brain age predictions with clinical data, use the provided template file 'Template_Analysis.xlsx'. This template helps organize the data for the analysis.
+The scripts in `Step_8_Data_Aggregation` compile:
 
-### Template Structure
-The 'Template_Analysis.xlsx' file contains the following columns:
+| Script | Main output | Analysis track |
+|:--|:--|:--|
+| `DKstats.sh` | `dk_all_stats.csv` | Raw cortical thickness, cortical surface area, cortical gray matter volume, and aseg subcortical volume |
+| `extract_cortical_thickness.sh` | `cortical_thickness.csv` | Mean left/right cortical thickness QC or summary analysis |
+| `extract_ICV.sh` | `icv_data.csv` | Intracranial volume covariate or summary analysis |
+| `WM_Stats.sh` | `wm_volumes.csv` | Raw regional white matter volume |
 
-1. **Required Fields:**
-   - Subject_ID: Unique identifier for each participant (e.g. "190")
-   - Age: Chronological age in years
-   - Sex: Male/Female
-   - Cohort: control/SCI_nNP/SCI_P (Control, SCI without pain, SCI with pain)
-   - BrainAge: Predicted brain age from PyBrain (from predicted_results.csv)
-   - BrainPAD: Brain-Predicted Age Difference (from predicted_results.csv)
+The BrainCharts z-score track uses this file from Step 3:
 
-2. **SCI-Specific Fields:**
-   - AIS: ASIA Impairment Scale grade (A/B/C/D)
-   - Time since SCI (years): Duration since injury (Numeric)
+```text
+/path/to/outputs/braincharts_normative_outputs/braincharts_zscores.csv
+```
 
-
-### Steps to Merge Data
-
-1. Open the Template_Analysis.xlsx file
-2. Copy your brain age predictions from PyBrain's output
-3. Add corresponding clinical data for each participant
-4. Ensure consistent formatting:
-   ```
-   - Use consistent Subject_ID format
-   - Enter numerical values without units
-   - Use standardized text for categorical variables
-   ```
-
-5. Save the completed template in your analysis directory
-
-**Note:** The brainpadstats.py script expects data in this template format. Deviating from the template structure may cause analysis errors.
-
-### Step 7: Analyzing and Visualizing Brain Age Results
-
-This section explains how to analyze and visualize brain age prediction results. The provided scripts generate statistical summaries and visualizations to help understand brain age differences between cohorts.
-
-The visualization script ('brainpadstats.py') creates various plots and statistical comparisons to help interpret your results.
-
-### Setup and Usage
-1. Configure the file paths in the script:
-   ```python
-   # Update these paths in brainpadstats.py:
-   PyB_path = "/path/to/your/predicted_results.xlsx"  # Excel file containing brain age predictions
-   output_path1 = "/path/to/output/summary_statistics.csv"  # CSV file for summary statistics
-   output_path2 = "/path/to/output/BrainPAD_comparison.png"  # Plot comparing BrainPAD across cohorts
-   output_path3 = "/path/to/output/Chronological_vs_BrainAge.png"  # Plot comparing chronological vs predicted brain age
-   output_path4 = "/path/to/output/BrainPAD_vs_Age.png"  # Plot showing BrainPAD vs age relationship
-   output_path5 = "/path/to/output/BrainPAD_across_sex.png"  # Plot showing sex-specific BrainPAD comparisons
-   output_path6 = "/path/to/output/BrainPAD_vs_TimeSinceInjury.png"  # Plot showing BrainPAD vs injury duration + correlation
-   output_path7 = "/path/to/output/BrainPAD_across_cohorts.csv"  # Statistical results for cohort comparisons
-   output_path8 = "/path/to/output/BrainPAD_across_sex.csv"  # Statistical results for sex-specific analyses
-   output_path9 = "/path/to/output/BrainPAD_acorss_AIS.csv" # Statistical results for AIS-specific comparison
-   output_path10 = "/path/to/output/Chi2_AIS.csv" # Statistical results for AIS-specific comparison
-   output_path11 = "/path/to/output/TimeSinceInjury_Comparison.csv" # Statistical results for Time since Injury comparison
-   output_path12 = "/path/to/output/ChronologicalAge_Comparison.csv" # Statistical results for chronological age comparison
-   ```
-
-2. Run the script using the terminal/command prompt:
-   
-   Using Terminal/Command Prompt:
-   ```bash
-   python "brainpadstats.py"
-   # Note: Use quotes around filename since it contains spaces
-   ```
-
-   Or using PyCharm IDE:
-   - Open brainpadstats.py in PyCharm
-   - Click the green "Run" button or press Shift+F10
-   - The script will execute in PyCharm's integrated terminal
-
-   Note: This script was originally developed and tested in PyCharm IDE, so running it through PyCharm is recommended to ensure consistent behavior.
-   ```
-
-### Generated Outputs
-
-#### 1. Summary Statistics
-The following statistics are generated based on what variables are included in your dataset:
-- Participant counts per cohort
-- Age statistics (mean, SD)
-- BrainPAD statistics (mean, SD) 
-- BrainAge statistics (mean, SD)
-- Gender distribution
-- AIS distribution (for SCI cohorts)
-- Time since injury (for SCI cohorts)
-
-
-#### 2. Visualizations
-The script generates five key visualizations:
-
-**a. BrainPAD Distribution**
-- Boxplot comparing Brain-Predicted Age Difference across cohorts
-- Individual data points overlay
-- Cohort means marked with black triangles
-- Color-coded by group (Control: Light Blue, SCI without pain: Light Orange, SCI with pain: Light Green)
-
-**b. Age Comparison Plot**
-- Scatter plot of chronological vs. predicted brain age
-- Reference line showing perfect prediction
-- Color-coded by cohort
-
-**c. Age Trends Analysis**
-- BrainPAD plotted against chronological age
-- Separate trend lines for each cohort
-- Individual data points color-coded by cohort
-
-**d. Sex-Specific Analysis**
-- Side-by-side boxplots showing BrainPAD distribution for males and females
-- Separate plots for each sex showing cohort comparisons
-- Individual data points overlay
-- Color-coded by cohort
-
-**e. Time Since Injury Analysis**
-- BrainPAD plotted against time since injury for SCI participants
-- Separate trend lines for each SCI cohort
-- Statistical annotations including test results, p-values and effect sizes
-- Regression statistics (R² and p-value)
-
-#### 3. Statistical Analysis
-
-The script performs comprehensive statistical testing:
-
-**a. Distribution Analysis**
-- Normality testing using Shapiro-Wilk and Kolmogorov-Smirnov tests
-- Automatic selection of parametric (t-test) vs non-parametric (Mann-Whitney U) methods
-
-**b. Group Comparisons**
-
-*Overall Cohort Analysis:*
-- Pairwise comparisons between all cohorts (Controls, SCI with/without pain)
-- Effect sizes using Cohen's d (for normal distributions) or Cliff's delta (for non-normal)
-- Sample sizes reported for each comparison
-
-*Sex-Specific Analysis:* 
-- Separate male/female comparisons between all cohorts
-- Effect sizes calculated for each comparison
-- Sample sizes included
-
-*Injury Analysis:*
-- Chi-square test for AIS distribution between SCI cohorts
-- Comparison of Time since Injury between SCI cohorts
-- Pairwise comparisons across AIS grades including controls
-
-### Output Files
-The brainpadstats.py script generates eleven files:
-1. summary_statistics.csv: Detailed summary statistics for each cohort
-2. BrainPAD_comparison.png: Boxplot comparing BrainPAD across cohorts
-3. Chronological_vs_BrainAge.png: Scatter plot of chronological vs predicted brain age
-4. BrainPAD_vs_Age.png: BrainPAD plotted against chronological age
-5. BrainPAD_across_sex.png: Sex-specific BrainPAD comparisons
-6. BrainPAD_vs_TimeSinceInjury.png: BrainPAD vs time since injury analysis
-7. BrainPAD_across_cohorts.csv: Statistical results for overall cohort comparisons
-8. BrainPAD_across_sex.csv: Statistical results for sex-specific cohort comparisons
-9. BrainPAD_acorss_AIS.csv: Statistical results for AIS-specific comparisons
-10. Chi2_AIS.csv: Chi-square test results for AIS distribution
-11. TimeSinceInjury_Comparison.csv: Statistical results for Time since Injury comparison
-12. ChronologicalAge_Comparison.csv: Statistical results for age comparisons
-
-
-These output files should be shared with the primary investigating group for the meta analysis of the data. 
-
-### Step 8: Structural Analyses
-
-We will be using some new scripts to compile the data into certain formats for specific statistical analyses in R and RStudio. The scripts will compile data about the various cortical measurements, intracranial volume, subcortical volumes, regional white matter volumes, and cortical thickness. 
-There are four different scripts for each statistic, and they can all be found in the structural-analysis folder in the main branch, in the sub folder scripts. Some lines may need to be changed. 
-Before beginning, make sure these scripts are accessible through WSL (Ubuntu), we like to put these scripts in another folder called 'code' within the project directory (same folder containing rawdata, derivatives), which is where all the statistical output files will be found. 
-
-All these 4 scripts can be found in Step_8_Data_Aggergation folder. 
+The raw FreeSurfer track uses the Step 8 CSVs above. In Step 9, run the statistical analysis separately for each track so the meta-analysis can compare normative deviations against raw morphometric group differences.
 
 **Potential issues and how to fix them**
-#### 1: Giving scripts permission to run
 
-If scripts are not running or do not have the permissions to run, you may have to make the script executable using the following code, where filename refers to the script name e.g. extract_cortical.sh
-```bash
-chmod +x filename
-```
-#### 2: Return character, command not found
+If scripts are not executable, run:
 
-There is a chance that when you try to run any of the shell scripts provided, that you run into an error that looks something like this ... 
-`Bash: $:then \r: command not found`
-Which can be fixed using the following line of code where filename refers to the script name e.g. extract_cortical.sh
 ```bash
-sed -i 's/\r$// filename
+chmod +x Step_8_Data_Aggregation/*.sh
 ```
-**DKStats.sh**
-This script extracts various measurements from various cortical regions from your freesurfer output, assuming all your files and data are in BIDS format. This script also extracts subcortical volumes, which we will separate later in R. 
-You will have to change line ~4 to the path to your BIDS directory, the folder containing your derivatives output from the recon_all . 
-```bash
-DERIV_DIR="/path/to/derivatives"       # This will be the same as in the recon_all.sh script
-```
-Around line 48, you may need to change this line to fit your subject folder naming scheme
-```bash
-for SUBJ_DIR in "$DERIV_DIR"/sub-*; do       # May need to change sub- to fit your specific naming scheme, same as in the recon_all.sh script
-```
-This assumes that your subject folders start with sub- and end with an identifier (sub-04 or sub-SCI124), change if naming scheme is different (e.g. SUB_04, SUB_SCI124 - change to SUB_).
-Run script using `DKStats.sh`. This will produced a file called `dk_all_stats.csv` in the folder where your scripts are held (DKStats.sh). 
 
-**extract_cortical_thickness.sh**
-This script extract the average cortical thickness of your subjects, from the left and right hemisphere separately.
-You will need to change line 4 again, this time directly to the derivatives folder in your BIDS folder.
-```bash
-DERIVATIVES_PATH="/path/to/derivatives"
-```
-Again, depending on your BIDS format, you may need to change line 11 to fit the naming of your subject folders.
-```bash
-for subject_dir in "$DERIVATIVES_PATH"/sub-*; do
-```
-Run script using `bash extract_cortical_thickness.sh`. This will produce a file caled `cortical_thickness.csv` in your code folder. 
+If a script was edited on Windows and WSL reports carriage-return errors, run:
 
-**extract_ICV.sh**
-This script compiles the total intracranial volume of each subject. You will need to change line 4 to the derivatives folder in your BIDS folder.
 ```bash
-BIDS_DIR="/path/to/derivatives"
+sed -i 's/\r$//' Step_8_Data_Aggregation/*.sh
 ```
-Again, depending on your BIDS format, you may need to change line 13 to fit the naming of your subject folders.
-```bash
-for SUBJECT_DIR in "$BIDS_DIR"/sub-*/; do
-```
-Run script using `bash extract_ICV.sh`. This will create a file called `ICV_data.csv` in your code folder.
 
-**WM_Stats.sh**
-This script compiles regional white matter volumes of each subject. You will need to change line 4 to the derivatives folder in your BIDS directory.
-```bash
-DERIVATIVES_DIR="/path/to/derivatives"
-```
-Again, depending on your BIDS format, you may need ot change line 8 and line 35 to fit the naming of your subject folders.
-```bash
-for SUBJECT_DIR in "$DERIVATIVES_DIR"/sub-*; do       # May have to change sub- depending on naming scheme
-...
-for SUBJECT_DIR in "$DERIVATIVES_DIR"/sub-*; do       # Same for line 35.
-```
-Running this script will compile a file called `wm_volumes.csv` in your code folder containing all your regional WM volumes. 
+### Step 9: Statistical Analysis for Structural Data
 
-**R Analysis**
-### Step 9: Statistical Analysis for Structural Data 
+After aggregation, conduct the R analysis twice:
 
-Following compiling all the data necessary for analysis, we can then conduct an R analysis for all data. This will compare the regions using a t-test, and calculate the effect size along with other statistical measures. Please refer to the README.md file within the Step_9_R_Analysis folder for a more detailed breakdown of the analysis pipeline. 
+1. BrainCharts normative analysis using `braincharts_zscores.csv` from Step 3.
+2. Raw FreeSurfer morphometry analysis using the Step 8 outputs for cortical thickness, cortical surface area, cortical volume, subcortical volume, ICV, and white matter volume.
+
+Both analyses should estimate group differences and effect sizes for SCI versus healthy controls and, when available, SCI with neuropathic pain versus SCI without neuropathic pain. Please refer to the README in `Step_9_R_Analysis` for the expected inputs and outputs.
 
 ## Support and Contact
 
@@ -800,6 +594,5 @@ Email: oscar.ortizangulo@ubc.ca
 
 Ryan Loke 
 Email: lokeryan@student.ubc.ca
-
 
 
